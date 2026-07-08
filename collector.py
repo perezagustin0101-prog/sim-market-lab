@@ -10,6 +10,7 @@ from typing import Any, Dict, Iterable, List
 
 import requests
 
+ROOT = Path(__file__).resolve().parent
 DATA_DIR = ROOT
 CONFIG_DIR = ROOT
 HISTORY_PATH = ROOT / "historial_mercado.csv"
