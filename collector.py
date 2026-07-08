@@ -10,13 +10,12 @@ from typing import Any, Dict, Iterable, List
 
 import requests
 
-ROOT = Path(__file__).resolve().parent
-DATA_DIR = ROOT / "data"
-CONFIG_DIR = ROOT / "config"
-HISTORY_PATH = DATA_DIR / "market_ticks.csv"
-PHASE_PATH = DATA_DIR / "product_phase_latest.csv"
-SETTINGS_PATH = CONFIG_DIR / "settings.json"
-PRODUCTS_PATH = CONFIG_DIR / "products.csv"
+DATA_DIR = ROOT
+CONFIG_DIR = ROOT
+HISTORY_PATH = ROOT / "historial_mercado.csv"
+PHASE_PATH = ROOT / "fase_mercado_actual.csv"
+SETTINGS_PATH = ROOT / "configuración.json"
+PRODUCTS_PATH = ROOT / "productos.csv"
 
 HISTORY_FIELDS = [
     "collected_at_utc",
