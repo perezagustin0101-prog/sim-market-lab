@@ -1,0 +1,14 @@
+COMO SUBIR ESTO A GITHUB
+
+1) Descomprimí el ZIP.
+2) Te va a quedar una carpeta llamada SUBIR_ESTO_A_GITHUB.
+3) Entrá a esa carpeta.
+4) En GitHub, en Upload files, NO elijas archivos sueltos.
+5) Arrastrá la carpeta SUBIR_ESTO_A_GITHUB completa al recuadro de GitHub.
+6) Tocá Confirmar cambios.
+7) Después andá a la pestaña Actions y ejecutá el workflow.
+
+IMPORTANTE:
+La carpeta .github puede estar oculta en Windows, pero está dentro del ZIP.
+Si subís solo app.py, collector.py, requirements.txt, etc., GitHub Actions NO va a funcionar.
+Tiene que subirse también: .github/workflows/collect.yml

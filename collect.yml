@@ -1,0 +1,37 @@
+name: Collect Sim Companies market ticker
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Sim Companies pide no hacer más de 1 request cada 5 minutos.
+    # Usamos 6 minutos: más frecuente que 15, pero por encima del mínimo de 5.
+    - cron: "*/6 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Collect market ticker
+        run: python collector.py
+
+      - name: Commit data
+        run: |
+          git config user.name "sim-market-lab-bot"
+          git config user.email "sim-market-lab-bot@users.noreply.github.com"
+          git add data/market_ticks.csv data/product_phase_latest.csv
+          git diff --cached --quiet && echo "No changes" || git commit -m "collect market ticker"
+          git push
