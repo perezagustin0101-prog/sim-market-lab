@@ -1,9 +1,10 @@
 collected_at_utc,kind,name,quality,min_price,points,historical_min_price,historical_max_price,historical_avg_price,percentile,trend,phase
-2026-07-08T18:56:05Z,2,Agua,0,0.375,1,0.375,0.375,0.375,100.0,sin datos,sin historial suficiente
-2026-07-08T18:56:05Z,2,Agua,1,0.385,1,0.385,0.385,0.385,100.0,sin datos,sin historial suficiente
-2026-07-08T18:56:05Z,2,Agua,2,0.386,1,0.386,0.386,0.386,100.0,sin datos,sin historial suficiente
-2026-07-08T18:56:05Z,2,Agua,3,0.401,1,0.401,0.401,0.401,100.0,sin datos,sin historial suficiente
-2026-07-08T18:56:05Z,2,Agua,4,0.414,1,0.414,0.414,0.414,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,0,0.386,2,0.375,0.386,0.3805,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,1,0.388,2,0.385,0.388,0.3865,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,2,0.389,2,0.386,0.389,0.3875,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,3,0.413,2,0.401,0.413,0.407,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,4,0.415,2,0.414,0.415,0.4145,100.0,sin datos,sin historial suficiente
+2026-07-08T21:32:43Z,2,Agua,5,0.464,1,0.464,0.464,0.464,100.0,sin datos,sin historial suficiente
 2026-07-08T20:16:35Z,1,Semillas,0,0.274,2,0.27,0.274,0.272,100.0,sin datos,sin historial suficiente
 2026-07-08T20:16:35Z,1,Semillas,1,0.276,2,0.271,0.276,0.2735,100.0,sin datos,sin historial suficiente
 2026-07-08T20:16:35Z,1,Semillas,2,0.277,2,0.272,0.277,0.2745,100.0,sin datos,sin historial suficiente
