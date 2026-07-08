@@ -15,8 +15,8 @@ DATA_DIR = ROOT
 CONFIG_DIR = ROOT
 HISTORY_PATH = ROOT / "historial_mercado.csv"
 PHASE_PATH = ROOT / "fase_mercado_actual.csv"
-SETTINGS_PATH = ROOT / "configuration.json"
-PRODUCTS_PATH = ROOT / "productos.csv"
+SETTINGS_PATH = ROOT / "settings.json"
+PRODUCTS_PATH = ROOT / "products.csv"
 
 HISTORY_FIELDS = [
     "collected_at_utc",
