@@ -1,0 +1,12 @@
+Reemplazá en GitHub estos archivos de la raíz del repo:
+
+- collector.py
+- settings.json
+- products.csv
+- app.py
+
+No hace falta tocar el workflow por ahora. El workflow actual ya ejecuta python collector.py y commitea historial_mercado.csv y fase_mercado_actual.csv.
+
+Importante:
+- products.csv contiene los recursos que el recolector va a rotar.
+- Para agregar productos, agregá filas con el número que aparece al final de la URL /market/resource/NUMERO/.

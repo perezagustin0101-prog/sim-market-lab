@@ -7,14 +7,14 @@ import pandas as pd
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parent
-DATA_DIR = ROOT / "data"
-HISTORY_PATH = DATA_DIR / "market_ticks.csv"
-PHASE_PATH = DATA_DIR / "product_phase_latest.csv"
-PRODUCTS_PATH = ROOT / "config" / "products.csv"
+HISTORY_PATH = ROOT / "historial_mercado.csv"
+PHASE_PATH = ROOT / "fase_mercado_actual.csv"
+PRODUCTS_PATH = ROOT / "products.csv"
 
-st.set_page_config(page_title="Sim Market Lab", layout="wide")
-st.title("Sim Market Lab")
-st.caption("Historial de precios de mercado y detector de fases por producto/calidad.")
+st.set_page_config(page_title="Market Lab", layout="wide")
+st.title("Market Lab")
+st.caption("Historial de precios mínimos del mercado y detector de fases por producto/calidad.")
+
 
 @st.cache_data
 def load_csv(path: Path) -> pd.DataFrame:
@@ -22,25 +22,20 @@ def load_csv(path: Path) -> pd.DataFrame:
         return pd.DataFrame()
     return pd.read_csv(path)
 
+
 history = load_csv(HISTORY_PATH)
 phase = load_csv(PHASE_PATH)
-products = load_csv(PRODUCTS_PATH)
 
 if history.empty:
-    st.warning("Todavía no hay historial. Ejecutá `python collector.py` o esperá a que corra GitHub Actions.")
+    st.warning("Todavía no hay historial. Ejecutá el recolector o esperá a que corra GitHub Actions.")
     st.stop()
 
 history["collected_at_utc"] = pd.to_datetime(history["collected_at_utc"], errors="coerce")
 history = history.dropna(subset=["collected_at_utc"])
 
-name_map = {}
-if not products.empty and {"kind", "name"}.issubset(products.columns):
-    name_map = dict(zip(products["kind"].astype(int), products["name"]))
-history["name"] = history["kind"].map(name_map).fillna("Producto " + history["kind"].astype(str))
-
 col1, col2, col3 = st.columns(3)
 with col1:
-    selected_name = st.selectbox("Producto", sorted(history["name"].unique()))
+    selected_name = st.selectbox("Producto", sorted(history["name"].astype(str).unique()))
 with col2:
     q_options = sorted(history.loc[history["name"] == selected_name, "quality"].unique())
     selected_q = st.selectbox("Calidad", q_options)
@@ -59,8 +54,16 @@ else:
         .mark_line(point=True)
         .encode(
             x=alt.X("collected_at_utc:T", title="Fecha/hora UTC"),
-            y=alt.Y("price:Q", title="Precio mínimo mercado"),
-            tooltip=["collected_at_utc:T", "name:N", "quality:Q", "price:Q"],
+            y=alt.Y("min_price:Q", title="Precio mínimo mercado"),
+            tooltip=[
+                "collected_at_utc:T",
+                "name:N",
+                "quality:Q",
+                "min_price:Q",
+                "quantity_at_min_price:Q",
+                "total_visible_quantity:Q",
+                "order_count:Q",
+            ],
         )
         .properties(height=360)
     )
@@ -68,7 +71,7 @@ else:
 
 st.subheader("Fases actuales")
 if phase.empty:
-    st.info("Todavía no se generó `product_phase_latest.csv`.")
+    st.info("Todavía no se generó fase_mercado_actual.csv.")
 else:
     st.dataframe(phase, use_container_width=True, hide_index=True)
 

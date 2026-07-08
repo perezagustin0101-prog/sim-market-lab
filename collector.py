@@ -3,16 +3,14 @@ from __future__ import annotations
 import csv
 import json
 import math
-import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Tuple
 
 import requests
 
 ROOT = Path(__file__).resolve().parent
-DATA_DIR = ROOT
-CONFIG_DIR = ROOT
 HISTORY_PATH = ROOT / "historial_mercado.csv"
 PHASE_PATH = ROOT / "fase_mercado_actual.csv"
 SETTINGS_PATH = ROOT / "settings.json"
@@ -21,8 +19,12 @@ PRODUCTS_PATH = ROOT / "products.csv"
 HISTORY_FIELDS = [
     "collected_at_utc",
     "kind",
+    "name",
     "quality",
-    "price",
+    "min_price",
+    "quantity_at_min_price",
+    "total_visible_quantity",
+    "order_count",
 ]
 
 PHASE_FIELDS = [
@@ -30,11 +32,11 @@ PHASE_FIELDS = [
     "kind",
     "name",
     "quality",
-    "price",
-    "points",
     "min_price",
-    "max_price",
-    "avg_price",
+    "points",
+    "historical_min_price",
+    "historical_max_price",
+    "historical_avg_price",
     "percentile",
     "trend",
     "phase",
@@ -46,48 +48,88 @@ def load_settings() -> Dict[str, Any]:
         return json.load(f)
 
 
-def now_iso_for_url() -> str:
-    # Sim Companies ticker examples use ISO-like timestamps.
-    # Keeping milliseconds and Z avoids locale issues.
-    return datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z")
+def load_products() -> List[Dict[str, Any]]:
+    if not PRODUCTS_PATH.exists():
+        raise FileNotFoundError("No existe products.csv")
+    products: List[Dict[str, Any]] = []
+    with PRODUCTS_PATH.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                kind = int(row["kind"])
+            except (KeyError, TypeError, ValueError):
+                continue
+            name = (row.get("name") or f"Producto {kind}").strip()
+            products.append({"kind": kind, "name": name})
+    if not products:
+        raise RuntimeError("products.csv no tiene productos válidos")
+    return products
 
 
-def fetch_market_ticker(settings: Dict[str, Any]) -> List[Dict[str, Any]]:
-    url = settings["market_ticker_url_template"].format(timestamp=now_iso_for_url())
-    response = requests.get(url, timeout=settings.get("request_timeout_seconds", 30))
+def pick_product_for_this_run(products: List[Dict[str, Any]], settings: Dict[str, Any]) -> Dict[str, Any]:
+    # Elegimos 1 producto por ejecución para no hacer muchas peticiones juntas.
+    # Con GitHub Actions cada 6 minutos, rota por tiempo: 0, 1, 2, 3...
+    window_seconds = int(settings.get("rotation_window_seconds", 360))
+    index = int(time.time() // window_seconds) % len(products)
+    return products[index]
+
+
+def fetch_market_orders(settings: Dict[str, Any], kind: int) -> List[Dict[str, Any]]:
+    url = settings["market_order_url_template"].format(
+        realm_id=settings.get("realm_id", 0),
+        kind=kind,
+    )
+    response = requests.get(
+        url,
+        timeout=settings.get("request_timeout_seconds", 30),
+        headers={"Accept": "application/json"},
+    )
     response.raise_for_status()
     data = response.json()
     if not isinstance(data, list):
-        raise ValueError(f"Expected list from market ticker, got {type(data).__name__}: {data!r}")
+        raise ValueError(f"Se esperaba una lista JSON, llegó {type(data).__name__}: {data!r}")
     return data
 
 
-def normalize_rows(raw_rows: Iterable[Dict[str, Any]], collected_at: str) -> List[Dict[str, Any]]:
-    rows: List[Dict[str, Any]] = []
-    for item in raw_rows:
-        # Market ticker payloads historically contain kind, quality and price.
-        # We intentionally ignore account/private fields and do not use cookies/auth.
+def summarize_orders(raw_orders: Iterable[Dict[str, Any]], product: Dict[str, Any], collected_at: str) -> List[Dict[str, Any]]:
+    grouped: Dict[Tuple[int, int], List[Dict[str, Any]]] = {}
+    requested_kind = int(product["kind"])
+    name = str(product["name"])
+
+    for item in raw_orders:
         try:
-            kind = int(item.get("kind"))
+            kind = int(item.get("kind", requested_kind))
             quality = int(item.get("quality", 0))
             price = float(item.get("price"))
+            quantity = int(float(item.get("quantity", 0)))
         except (TypeError, ValueError):
             continue
-        if not math.isfinite(price):
+        if not math.isfinite(price) or quantity <= 0:
             continue
+        grouped.setdefault((kind, quality), []).append({"price": price, "quantity": quantity})
+
+    rows: List[Dict[str, Any]] = []
+    for (kind, quality), orders in grouped.items():
+        min_price = min(o["price"] for o in orders)
+        quantity_at_min = sum(o["quantity"] for o in orders if o["price"] == min_price)
+        total_quantity = sum(o["quantity"] for o in orders)
         rows.append(
             {
                 "collected_at_utc": collected_at,
                 "kind": kind,
+                "name": name,
                 "quality": quality,
-                "price": price,
+                "min_price": round(min_price, 6),
+                "quantity_at_min_price": quantity_at_min,
+                "total_visible_quantity": total_quantity,
+                "order_count": len(orders),
             }
         )
+    rows.sort(key=lambda r: (r["kind"], r["quality"]))
     return rows
 
 
 def append_history(rows: List[Dict[str, Any]]) -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
     file_exists = HISTORY_PATH.exists() and HISTORY_PATH.stat().st_size > 0
     with HISTORY_PATH.open("a", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=HISTORY_FIELDS)
@@ -99,36 +141,26 @@ def append_history(rows: List[Dict[str, Any]]) -> None:
 def load_history() -> List[Dict[str, Any]]:
     if not HISTORY_PATH.exists():
         return []
+    out: List[Dict[str, Any]] = []
     with HISTORY_PATH.open("r", encoding="utf-8", newline="") as f:
         reader = csv.DictReader(f)
-        out = []
         for row in reader:
             try:
                 out.append(
                     {
                         "collected_at_utc": row["collected_at_utc"],
                         "kind": int(row["kind"]),
+                        "name": row.get("name") or f"Producto {row['kind']}",
                         "quality": int(row["quality"]),
-                        "price": float(row["price"]),
+                        "min_price": float(row["min_price"]),
+                        "quantity_at_min_price": int(float(row.get("quantity_at_min_price", 0))),
+                        "total_visible_quantity": int(float(row.get("total_visible_quantity", 0))),
+                        "order_count": int(float(row.get("order_count", 0))),
                     }
                 )
             except (KeyError, TypeError, ValueError):
                 continue
-        return out
-
-
-def load_product_names() -> Dict[int, str]:
-    if not PRODUCTS_PATH.exists():
-        return {}
-    with PRODUCTS_PATH.open("r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        names = {}
-        for row in reader:
-            try:
-                names[int(row["kind"])] = row["name"]
-            except (KeyError, TypeError, ValueError):
-                continue
-        return names
+    return out
 
 
 def percentile_rank(values: List[float], current: float) -> float:
@@ -136,20 +168,6 @@ def percentile_rank(values: List[float], current: float) -> float:
         return float("nan")
     below_or_equal = sum(1 for v in values if v <= current)
     return round(100 * below_or_equal / len(values), 2)
-
-
-def classify_phase(percentile: float, trend: str, points: int, min_points: int) -> str:
-    if points < min_points:
-        return "sin historial suficiente"
-    if percentile <= 20:
-        return "barato / sobreoferta"
-    if percentile <= 40:
-        return "bajo-normal / recuperación" if trend == "subiendo" else "bajo-normal"
-    if percentile <= 70:
-        return "normal"
-    if percentile <= 90:
-        return "caro"
-    return "pico / oportunidad de venta"
 
 
 def calc_trend(prices: List[float], short_n: int, long_n: int) -> str:
@@ -166,12 +184,24 @@ def calc_trend(prices: List[float], short_n: int, long_n: int) -> str:
     return "lateral"
 
 
+def classify_phase(percentile: float, trend: str, points: int, min_points: int) -> str:
+    if points < min_points:
+        return "sin historial suficiente"
+    if percentile <= 20:
+        return "barato / sobreoferta"
+    if percentile <= 40:
+        return "bajo-normal / recuperación" if trend == "subiendo" else "bajo-normal"
+    if percentile <= 70:
+        return "normal"
+    if percentile <= 90:
+        return "caro"
+    return "pico / oportunidad de venta"
+
+
 def build_latest_phase(history: List[Dict[str, Any]], settings: Dict[str, Any]) -> List[Dict[str, Any]]:
-    names = load_product_names()
-    grouped: Dict[tuple[int, int], List[Dict[str, Any]]] = {}
+    grouped: Dict[Tuple[int, int], List[Dict[str, Any]]] = {}
     for row in history:
-        key = (row["kind"], row["quality"])
-        grouped.setdefault(key, []).append(row)
+        grouped.setdefault((row["kind"], row["quality"]), []).append(row)
 
     latest_rows: List[Dict[str, Any]] = []
     min_points = int(settings.get("phase_min_points", 20))
@@ -180,9 +210,9 @@ def build_latest_phase(history: List[Dict[str, Any]], settings: Dict[str, Any]) 
 
     for (kind, quality), rows in grouped.items():
         rows = sorted(rows, key=lambda r: r["collected_at_utc"])
-        prices = [r["price"] for r in rows]
+        prices = [float(r["min_price"]) for r in rows]
         latest = rows[-1]
-        current = latest["price"]
+        current = float(latest["min_price"])
         pctl = percentile_rank(prices, current)
         trend = calc_trend(prices, short_n, long_n)
         phase = classify_phase(pctl, trend, len(prices), min_points)
@@ -190,25 +220,23 @@ def build_latest_phase(history: List[Dict[str, Any]], settings: Dict[str, Any]) 
             {
                 "collected_at_utc": latest["collected_at_utc"],
                 "kind": kind,
-                "name": names.get(kind, f"Producto {kind}"),
+                "name": latest.get("name") or f"Producto {kind}",
                 "quality": quality,
-                "price": round(current, 6),
+                "min_price": round(current, 6),
                 "points": len(prices),
-                "min_price": round(min(prices), 6),
-                "max_price": round(max(prices), 6),
-                "avg_price": round(sum(prices) / len(prices), 6),
+                "historical_min_price": round(min(prices), 6),
+                "historical_max_price": round(max(prices), 6),
+                "historical_avg_price": round(sum(prices) / len(prices), 6),
                 "percentile": pctl,
                 "trend": trend,
                 "phase": phase,
             }
         )
-
     latest_rows.sort(key=lambda r: (r["name"], r["quality"]))
     return latest_rows
 
 
 def write_phase(rows: List[Dict[str, Any]]) -> None:
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
     with PHASE_PATH.open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=PHASE_FIELDS)
         writer.writeheader()
@@ -217,18 +245,24 @@ def write_phase(rows: List[Dict[str, Any]]) -> None:
 
 def main() -> None:
     settings = load_settings()
+    products = load_products()
+    product = pick_product_for_this_run(products, settings)
     collected_at = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-    raw = fetch_market_ticker(settings)
-    rows = normalize_rows(raw, collected_at)
+
+    raw_orders = fetch_market_orders(settings, int(product["kind"]))
+    rows = summarize_orders(raw_orders, product, collected_at)
     if not rows:
-        raise RuntimeError("Market ticker returned no usable rows")
+        raise RuntimeError(f"No llegaron órdenes útiles para {product}")
+
     append_history(rows)
     history = load_history()
     phase_rows = build_latest_phase(history, settings)
     write_phase(phase_rows)
-    print(f"Collected {len(rows)} ticker rows at {collected_at}")
-    print(f"History rows: {len(history)}")
-    print(f"Phase rows: {len(phase_rows)}")
+
+    print(f"Producto recolectado: {product['name']} ({product['kind']})")
+    print(f"Filas agregadas: {len(rows)}")
+    print(f"Historial total: {len(history)}")
+    print(f"Fases actuales: {len(phase_rows)}")
 
 
 if __name__ == "__main__":
