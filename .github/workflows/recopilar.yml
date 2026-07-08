@@ -32,6 +32,6 @@ jobs:
         run: |
           git config user.name "sim-market-lab-bot"
           git config user.email "sim-market-lab-bot@users.noreply.github.com"
-          git add data/market_ticks.csv data/product_phase_latest.csv
+          git add historial_mercado.csv fase_mercado_actual.csv
           git diff --cached --quiet && echo "No changes" || git commit -m "collect market ticker"
           git push
