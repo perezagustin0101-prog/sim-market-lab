@@ -1,0 +1,5 @@
+edificio,producto_principal,salario_h,produccion_h,electricidad_necesaria_h,valor_referencia_n1,costo_n1,tiempo_n1_h,notas
+Central eléctrica,Electricidad,414,2592.87,0,51750,56761,3,Produce electricidad; no consume insumos físicos.
+Embalse de agua,Agua,345,1642.86,328.57,20700,22666,2,Produce agua usando electricidad propia.
+Granja,Varios cultivos,104,0,0,6900,7555,1,Produce cultivos; cada cultivo tiene producción e insumos propios.
+Depósito de Embarque,Transporte,311,3206.011,0,51750,56785,3,Produce unidades de transporte usando electricidad y diésel.

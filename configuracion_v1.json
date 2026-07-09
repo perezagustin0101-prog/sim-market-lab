@@ -1,0 +1,19 @@
+{
+  "empresa_actual": {
+    "Central eléctrica": {"cantidad": 1, "nivel": 1},
+    "Embalse de agua": {"cantidad": 1, "nivel": 1},
+    "Granja": {"cantidad": 4, "nivel": 1},
+    "Depósito de Embarque": {"cantidad": 0, "nivel": 1}
+  },
+  "fase_actual": "Normal",
+  "multiplicadores_fase": {
+    "Recesión": {"produccion": 1.0, "salario": 1.0},
+    "Normal": {"produccion": 1.0, "salario": 1.0},
+    "Boom": {"produccion": 1.0, "salario": 1.0}
+  },
+  "comision_mercado": 0.04,
+  "descuento_contrato": 0.03,
+  "reduccion_admin_director": 0.0,
+  "precio_transporte_default": 0.389,
+  "precio_diesel_default": 40.75
+}

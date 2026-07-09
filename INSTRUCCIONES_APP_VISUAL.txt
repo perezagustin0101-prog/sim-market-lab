@@ -1,0 +1,28 @@
+APP VISUAL V1.1 - MARKET LAB
+
+Archivos incluidos:
+- app.py
+- requirements.txt
+- data/productos_v1.csv
+- data/edificios_v1.csv
+- data/robots_requeridos.csv
+- data/configuracion_v1.json
+- data/edificios_extra_pendientes.csv
+
+IMPORTANTE:
+- No reemplazar collector.py.
+- El recolector de mercado sigue como está.
+- Esta versión agrega selector de fase económica.
+
+Fase económica:
+- La app permite elegir Recesión / Normal / Boom.
+- También permite ajustar multiplicador de producción/h y salario/h.
+- Por defecto quedan en 1.0 porque hay que calibrarlos contra los números reales que muestre tu juego.
+- La app asume que si cambia producción/h, también escala el consumo/h de insumos, porque la receta por unidad no cambia.
+
+Si GitHub no conserva la carpeta data, la app igual intenta leer los CSV/JSON desde la raíz del repo.
+
+Para correr local:
+1. Abrir terminal en la carpeta del repo.
+2. pip install -r requirements.txt
+3. streamlit run app.py
