@@ -1,17 +1,6 @@
-APP VISUAL V1.5 SIMPLE
+APP VISUAL V1.6 REAL
 
-Qué cambia:
-- La app ya no usa “nivel promedio”.
-- Vos ponés la cantidad de slots disponibles.
-- La app compara combinaciones completas de edificios nivel 1.
-- Separa automáticamente:
-  - Central
-  - Embalse
-  - Granjas para semillas
-  - Granjas para producto de venta
-  - Excedentes vendidos en mercado
-
-Qué subir:
+Reemplazar en el repo:
 - app.py
 - INSTRUCCIONES_APP_VISUAL.txt
 
@@ -20,8 +9,12 @@ No tocar:
 - settings.json
 - historial_mercado.csv
 
-Uso recomendado ahora:
-- Slots disponibles: 6 o 7
-- Canal de venta: Mercado
-- Permitir Depósito de Embarque: apagado
-- Vender excedentes: activado
+Cambio principal:
+La app ya no inventa una empresa desde cero. Primero usa tus edificios reales:
+- Central eléctrica
+- Embalse de agua
+- Granjas
+- Depósito de Embarque
+
+Después muestra el slot vacío como planificación futura.
+No recomienda destruir edificios ni reemplazarlos.
