@@ -1,11 +1,17 @@
-APP VISUAL V1.3
+APP VISUAL V1.5 SIMPLE
 
 Qué cambia:
-- Agrega venta automática de excedentes en mercado.
-- En el simulador manual, si sobra electricidad, agua o semillas, la app calcula cuánto flujo de caja genera vender ese sobrante.
-- Separa beneficio del cultivo, beneficio de excedentes y beneficio total.
+- La app ya no usa “nivel promedio”.
+- Vos ponés la cantidad de slots disponibles.
+- La app compara combinaciones completas de edificios nivel 1.
+- Separa automáticamente:
+  - Central
+  - Embalse
+  - Granjas para semillas
+  - Granjas para producto de venta
+  - Excedentes vendidos en mercado
 
-Archivos a subir/reemplazar:
+Qué subir:
 - app.py
 - INSTRUCCIONES_APP_VISUAL.txt
 
@@ -14,10 +20,8 @@ No tocar:
 - settings.json
 - historial_mercado.csv
 
-Uso recomendado actual:
-- Canal de venta: Solo mercado
-- Vender excedentes en mercado: activado
-- Granjas: elegir cuántas van a Semillas y cuántas al cultivo elegido
-
-Nota:
-La venta de excedentes usa mercado. Electricidad y agua tienen transporte 0; semillas usa el transporte cargado en productos_v1.csv.
+Uso recomendado ahora:
+- Slots disponibles: 6 o 7
+- Canal de venta: Mercado
+- Permitir Depósito de Embarque: apagado
+- Vender excedentes: activado
