@@ -274,6 +274,21 @@ for b in ["Central eléctrica", "Embalse de agua", "Granja", "Depósito de Embar
         build_inputs[b] = {"cantidad": int(qty), "nivel": int(lvl), "niveles_totales": int(qty) * int(lvl)}
 
 st.sidebar.markdown("---")
+st.sidebar.markdown("## 🌱 Plan de granjas")
+total_farms_for_plan = int(build_inputs.get("Granja", {}).get("cantidad", 0))
+default_seed_farms = min(int(config.get("granjas_semillas_fijas", 1)), max(total_farms_for_plan, 0))
+seed_farms_fixed = st.sidebar.number_input(
+    "Granjas fijas para semillas",
+    min_value=0,
+    max_value=max(total_farms_for_plan, 0),
+    value=default_seed_farms,
+    step=1,
+    help="Estas granjas se tratan como soporte. Primero producen semillas para alimentar las granjas que venden el producto principal.",
+)
+crop_farms_fixed = max(0, total_farms_for_plan - int(seed_farms_fixed))
+st.sidebar.caption(f"Plan actual: {int(seed_farms_fixed)} granja(s) a semillas · {crop_farms_fixed} granja(s) al producto principal.")
+
+st.sidebar.markdown("---")
 st.sidebar.markdown("## 🧾 Parámetros")
 fee_market = st.sidebar.slider("Comisión mercado", 0.0, 0.10, float(config.get("comision_mercado", 0.04)), 0.005)
 contract_discount = st.sidebar.slider("Descuento contrato", 0.0, 0.10, float(config.get("descuento_contrato", 0.03)), 0.005)
@@ -468,7 +483,9 @@ def simulate_scenario(central_lv: int, embalse_lv: int, granja_lv: int) -> pd.Da
     seed_prod = float(seed_row["produccion_h"]) * production_phase_mult
     seed_water = float(seed_row["agua_necesaria_h"]) * production_phase_mult
 
-    for _, r in products[products["edificio"] == "Granja"].iterrows():
+    # En planificación, Semillas se trata como soporte, no como cultivo final.
+    farm_plan_products = products[(products["edificio"] == "Granja") & (products["producto"] != "Semillas")]
+    for _, r in farm_plan_products.iterrows():
         p = r["producto"]
         prod_h = float(r["produccion_h"]) * production_phase_mult
         water_direct = float(r["agua_necesaria_h"]) * production_phase_mult
@@ -815,7 +832,7 @@ with tab2:
 
 with tab3:
     st.subheader("Simulador de producción con semillas propias")
-    st.caption("Calcula cuántas granjas de cultivo y cuántas granjas de semillas harían falta para sostener cada producto usando tus embalses y centrales.")
+    st.caption("Semillas ahora se trata como bloque de soporte. La tabla calcula cuántas granjas de semillas harían falta para sostener cada cultivo vendible.")
     sim_view = current_sim.copy()
     sim_view["Beneficio/h"] = sim_view["Beneficio/h"].map(money)
     for c in ["Granjas cultivo", "Granjas semillas", "Output/h"]:
@@ -832,18 +849,28 @@ with tab3:
         d4.metric("Beneficio/h", money(det["Beneficio/h"]))
 
     st.markdown("---")
-    st.subheader("Asignación manual de tus granjas")
-    st.caption("Acá elegís explícitamente cuántas granjas fabrican semillas y cuántas fabrican el producto que vas a vender. Ideal para tu etapa actual con poco capital y venta por mercado.")
+    st.subheader("Plan real de granjas: soporte vs venta")
+    st.caption("Acá queda separado: las granjas de semillas son soporte interno; las granjas restantes fabrican el producto que vas a vender. Si sobran semillas, se cuentan como excedente vendible.")
 
     sellable_crops = products[(products["edificio"] == "Granja") & (products["producto"] != "Semillas")]["producto"].tolist()
-    m1, m2 = st.columns([1.2, 1])
+    total_farms_qty = int(build_inputs["Granja"]["cantidad"])
+    m1, m2, m3 = st.columns([1.25, 1, 1])
     with m1:
-        manual_crop = st.selectbox("Producto a vender", sellable_crops, index=sellable_crops.index("Grano") if "Grano" in sellable_crops else 0)
+        manual_crop = st.selectbox("Producto principal a vender", sellable_crops, index=sellable_crops.index("Grano") if "Grano" in sellable_crops else 0)
     with m2:
-        total_farms_qty = int(build_inputs["Granja"]["cantidad"])
-        manual_seed_farms = st.slider("Granjas dedicadas a semillas", 0, max(total_farms_qty, 0), min(1, max(total_farms_qty, 0)), 1)
+        manual_seed_farms = st.number_input(
+            "Granjas de soporte: semillas",
+            min_value=0,
+            max_value=max(total_farms_qty, 0),
+            value=min(int(seed_farms_fixed), max(total_farms_qty, 0)),
+            step=1,
+            help="Estas granjas no se comparan como producto final. Alimentan primero al cultivo elegido.",
+            key="manual_seed_support_farms",
+        )
+    with m3:
+        st.metric("Granjas para vender", f"{max(0, total_farms_qty - int(manual_seed_farms))}")
 
-    manual = simulate_manual_farm_plan(manual_crop, manual_seed_farms)
+    manual = simulate_manual_farm_plan(manual_crop, int(manual_seed_farms))
     if manual:
         a1, a2, a3, a4 = st.columns(4)
         a1.metric("Granjas a vender", f"{manual['granjas_cultivo']}")
@@ -861,6 +888,23 @@ with tab3:
         cex1.metric("Electricidad saldo/h", num(manual["electricidad_saldo"], 1))
         cex2.metric("Agua saldo/h", num(manual["agua_saldo"], 1))
         cex3.metric("Semillas saldo/h", num(manual["semillas_saldo"], 1))
+
+        st.markdown("#### 🌱 Bloque de soporte: Semillas")
+        support_view = pd.DataFrame([
+            ["Granjas de soporte", f"{manual['granjas_semillas']}"],
+            ["Semillas producidas/h", num(manual["semillas_producidas"], 1)],
+            ["Semillas requeridas por el cultivo/h", num(manual["semillas_necesarias"], 1)],
+            ["Semillas usadas/h", num(manual["semillas_usadas"], 1)],
+            ["Semillas sobrantes/h", num(manual["semillas_saldo"], 1)],
+        ], columns=["Dato", "Valor"])
+        st.dataframe(support_view, hide_index=True, use_container_width=True)
+
+        if manual["semillas_saldo"] < -1e-6:
+            st.error("Faltan semillas: subí las granjas de soporte o elegí un cultivo que consuma menos semillas.")
+        elif manual["semillas_saldo"] > 0:
+            st.success("Sobran semillas: la app las puede vender como excedente si está activada la venta de excedentes.")
+        else:
+            st.info("Semillas balanceadas: no sobra ni falta casi nada.")
 
         if manual.get("surplus_rows"):
             st.markdown("#### Venta automática de excedentes")
@@ -972,4 +1016,4 @@ with tab6:
     st.info("Para la cadena actual ya están cargadas Central, Embalse, Granja y Depósito. Para otros edificios conviene ir agregándolos de a uno o por cadena completa.")
 
 st.markdown("---")
-st.caption("V1.3 — Asignación manual, venta por mercado, excedentes automáticos y fase económica editable. Producción y consumo/h escalan por fase; salarios/h quedan editables porque deben calibrarse contra tu interfaz del juego.")
+st.caption("V1.4 — Granjas de semillas separadas como bloque de soporte, venta por mercado, excedentes automáticos y fase económica editable. Producción y consumo/h escalan por fase; salarios/h quedan editables porque deben calibrarse contra tu interfaz del juego.")
