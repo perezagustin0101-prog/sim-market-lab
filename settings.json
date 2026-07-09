@@ -1,8 +1,8 @@
 {
-  "market_order_url_template": "https://www.simcompanies.com/api/v3/market/{realm_id}/{kind}/",
+  "market_ticker_url": "https://www.simcompanies.com/api/v3/market-ticker/0/",
   "realm_id": 0,
   "request_timeout_seconds": 30,
-  "rotation_window_seconds": 360,
+  "min_minutes_between_requests": 5,
   "phase_min_points": 20,
   "short_window_points": 12,
   "long_window_points": 96

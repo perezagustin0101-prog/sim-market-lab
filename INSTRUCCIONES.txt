@@ -1,12 +1,9 @@
-Reemplazá en GitHub estos archivos de la raíz del repo:
-
+Subir/reemplazar en GitHub:
 - collector.py
 - settings.json
-- products.csv
 - app.py
+- products.csv
 
-No hace falta tocar el workflow por ahora. El workflow actual ya ejecuta python collector.py y commitea historial_mercado.csv y fase_mercado_actual.csv.
-
-Importante:
-- products.csv contiene los recursos que el recolector va a rotar.
-- Para agregar productos, agregá filas con el número que aparece al final de la URL /market/resource/NUMERO/.
+Después ir a Actions y ejecutar el workflow.
+Este parche usa el endpoint global detectado:
+https://www.simcompanies.com/api/v3/market-ticker/0/

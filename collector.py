@@ -3,10 +3,9 @@ from __future__ import annotations
 import csv
 import json
 import math
-import time
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Tuple
+from typing import Any, Dict, Iterable, List
 
 import requests
 
@@ -16,27 +15,17 @@ PHASE_PATH = ROOT / "fase_mercado_actual.csv"
 SETTINGS_PATH = ROOT / "settings.json"
 PRODUCTS_PATH = ROOT / "products.csv"
 
-HISTORY_FIELDS = [
-    "collected_at_utc",
-    "kind",
-    "name",
-    "quality",
-    "min_price",
-    "quantity_at_min_price",
-    "total_visible_quantity",
-    "order_count",
-]
-
+HISTORY_FIELDS = ["collected_at_utc", "kind", "quality", "price"]
 PHASE_FIELDS = [
     "collected_at_utc",
     "kind",
     "name",
     "quality",
-    "min_price",
+    "price",
     "points",
-    "historical_min_price",
-    "historical_max_price",
-    "historical_avg_price",
+    "min_price",
+    "max_price",
+    "avg_price",
     "percentile",
     "trend",
     "phase",
@@ -48,84 +37,62 @@ def load_settings() -> Dict[str, Any]:
         return json.load(f)
 
 
-def load_products() -> List[Dict[str, Any]]:
-    if not PRODUCTS_PATH.exists():
-        raise FileNotFoundError("No existe products.csv")
-    products: List[Dict[str, Any]] = []
-    with PRODUCTS_PATH.open("r", encoding="utf-8", newline="") as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            try:
-                kind = int(row["kind"])
-            except (KeyError, TypeError, ValueError):
-                continue
-            name = (row.get("name") or f"Producto {kind}").strip()
-            products.append({"kind": kind, "name": name})
-    if not products:
-        raise RuntimeError("products.csv no tiene productos válidos")
-    return products
-
-
-def pick_product_for_this_run(products: List[Dict[str, Any]], settings: Dict[str, Any]) -> Dict[str, Any]:
-    # Elegimos 1 producto por ejecución para no hacer muchas peticiones juntas.
-    # Con GitHub Actions cada 6 minutos, rota por tiempo: 0, 1, 2, 3...
-    window_seconds = int(settings.get("rotation_window_seconds", 360))
-    index = int(time.time() // window_seconds) % len(products)
-    return products[index]
-
-
-def fetch_market_orders(settings: Dict[str, Any], kind: int) -> List[Dict[str, Any]]:
-    url = settings["market_order_url_template"].format(
-        realm_id=settings.get("realm_id", 0),
-        kind=kind,
-    )
-    response = requests.get(
-        url,
-        timeout=settings.get("request_timeout_seconds", 30),
-        headers={"Accept": "application/json"},
-    )
+def fetch_market_ticker(settings: Dict[str, Any]) -> Any:
+    # Endpoint global detectado en el navegador:
+    # https://www.simcompanies.com/api/v3/market-ticker/0/
+    url = settings.get("market_ticker_url") or settings.get("market_ticker_url_template")
+    if not url:
+        raise RuntimeError("settings.json no tiene market_ticker_url")
+    response = requests.get(url, timeout=settings.get("request_timeout_seconds", 30))
     response.raise_for_status()
-    data = response.json()
-    if not isinstance(data, list):
-        raise ValueError(f"Se esperaba una lista JSON, llegó {type(data).__name__}: {data!r}")
-    return data
+    return response.json()
 
 
-def summarize_orders(raw_orders: Iterable[Dict[str, Any]], product: Dict[str, Any], collected_at: str) -> List[Dict[str, Any]]:
-    grouped: Dict[Tuple[int, int], List[Dict[str, Any]]] = {}
-    requested_kind = int(product["kind"])
-    name = str(product["name"])
+def _try_add_row(rows: List[Dict[str, Any]], collected_at: str, kind: Any, quality: Any, price: Any) -> None:
+    try:
+        k = int(kind)
+        q = int(quality if quality is not None else 0)
+        p = float(price)
+    except (TypeError, ValueError):
+        return
+    if not math.isfinite(p):
+        return
+    rows.append({"collected_at_utc": collected_at, "kind": k, "quality": q, "price": p})
 
-    for item in raw_orders:
-        try:
-            kind = int(item.get("kind", requested_kind))
-            quality = int(item.get("quality", 0))
-            price = float(item.get("price"))
-            quantity = int(float(item.get("quantity", 0)))
-        except (TypeError, ValueError):
-            continue
-        if not math.isfinite(price) or quantity <= 0:
-            continue
-        grouped.setdefault((kind, quality), []).append({"price": price, "quantity": quantity})
 
+def normalize_rows(payload: Any, collected_at: str) -> List[Dict[str, Any]]:
+    """Acepta varias formas posibles del ticker.
+
+    Esperado típico: lista de objetos con kind, quality y price.
+    También soporta dicts que contengan listas en keys comunes o mapas kind->price.
+    """
     rows: List[Dict[str, Any]] = []
-    for (kind, quality), orders in grouped.items():
-        min_price = min(o["price"] for o in orders)
-        quantity_at_min = sum(o["quantity"] for o in orders if o["price"] == min_price)
-        total_quantity = sum(o["quantity"] for o in orders)
-        rows.append(
-            {
-                "collected_at_utc": collected_at,
-                "kind": kind,
-                "name": name,
-                "quality": quality,
-                "min_price": round(min_price, 6),
-                "quantity_at_min_price": quantity_at_min,
-                "total_visible_quantity": total_quantity,
-                "order_count": len(orders),
-            }
-        )
-    rows.sort(key=lambda r: (r["kind"], r["quality"]))
+
+    if isinstance(payload, dict):
+        # Caso: {"data": [...]} / {"resources": [...]} / etc.
+        for key in ("data", "results", "resources", "items", "ticker"):
+            if isinstance(payload.get(key), list):
+                return normalize_rows(payload[key], collected_at)
+
+        # Caso: {"1": 0.27, "2": 0.38} o {"1": {"0": 0.27}}
+        for kind, value in payload.items():
+            if isinstance(value, dict):
+                for quality, price in value.items():
+                    _try_add_row(rows, collected_at, kind, quality, price)
+            else:
+                _try_add_row(rows, collected_at, kind, 0, value)
+        return rows
+
+    if isinstance(payload, list):
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            kind = item.get("kind") or item.get("resource") or item.get("resourceId") or item.get("id")
+            quality = item.get("quality", 0)
+            price = item.get("price") or item.get("marketPrice") or item.get("lowestPrice") or item.get("minPrice")
+            _try_add_row(rows, collected_at, kind, quality, price)
+        return rows
+
     return rows
 
 
@@ -150,17 +117,27 @@ def load_history() -> List[Dict[str, Any]]:
                     {
                         "collected_at_utc": row["collected_at_utc"],
                         "kind": int(row["kind"]),
-                        "name": row.get("name") or f"Producto {row['kind']}",
                         "quality": int(row["quality"]),
-                        "min_price": float(row["min_price"]),
-                        "quantity_at_min_price": int(float(row.get("quantity_at_min_price", 0))),
-                        "total_visible_quantity": int(float(row.get("total_visible_quantity", 0))),
-                        "order_count": int(float(row.get("order_count", 0))),
+                        "price": float(row["price"]),
                     }
                 )
             except (KeyError, TypeError, ValueError):
                 continue
     return out
+
+
+def load_product_names() -> Dict[int, str]:
+    if not PRODUCTS_PATH.exists():
+        return {}
+    names: Dict[int, str] = {}
+    with PRODUCTS_PATH.open("r", encoding="utf-8", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            try:
+                names[int(row["kind"])] = row["name"]
+            except (KeyError, TypeError, ValueError):
+                continue
+    return names
 
 
 def percentile_rank(values: List[float], current: float) -> float:
@@ -199,39 +176,40 @@ def classify_phase(percentile: float, trend: str, points: int, min_points: int) 
 
 
 def build_latest_phase(history: List[Dict[str, Any]], settings: Dict[str, Any]) -> List[Dict[str, Any]]:
-    grouped: Dict[Tuple[int, int], List[Dict[str, Any]]] = {}
+    names = load_product_names()
+    grouped: Dict[tuple[int, int], List[Dict[str, Any]]] = {}
     for row in history:
         grouped.setdefault((row["kind"], row["quality"]), []).append(row)
 
-    latest_rows: List[Dict[str, Any]] = []
     min_points = int(settings.get("phase_min_points", 20))
     short_n = int(settings.get("short_window_points", 12))
     long_n = int(settings.get("long_window_points", 96))
+    latest_rows: List[Dict[str, Any]] = []
 
     for (kind, quality), rows in grouped.items():
         rows = sorted(rows, key=lambda r: r["collected_at_utc"])
-        prices = [float(r["min_price"]) for r in rows]
+        prices = [r["price"] for r in rows]
         latest = rows[-1]
-        current = float(latest["min_price"])
-        pctl = percentile_rank(prices, current)
+        current = latest["price"]
+        percentile = percentile_rank(prices, current)
         trend = calc_trend(prices, short_n, long_n)
-        phase = classify_phase(pctl, trend, len(prices), min_points)
         latest_rows.append(
             {
                 "collected_at_utc": latest["collected_at_utc"],
                 "kind": kind,
-                "name": latest.get("name") or f"Producto {kind}",
+                "name": names.get(kind, f"Producto {kind}"),
                 "quality": quality,
-                "min_price": round(current, 6),
+                "price": round(current, 6),
                 "points": len(prices),
-                "historical_min_price": round(min(prices), 6),
-                "historical_max_price": round(max(prices), 6),
-                "historical_avg_price": round(sum(prices) / len(prices), 6),
-                "percentile": pctl,
+                "min_price": round(min(prices), 6),
+                "max_price": round(max(prices), 6),
+                "avg_price": round(sum(prices) / len(prices), 6),
+                "percentile": percentile,
                 "trend": trend,
-                "phase": phase,
+                "phase": classify_phase(percentile, trend, len(prices), min_points),
             }
         )
+
     latest_rows.sort(key=lambda r: (r["name"], r["quality"]))
     return latest_rows
 
@@ -245,24 +223,18 @@ def write_phase(rows: List[Dict[str, Any]]) -> None:
 
 def main() -> None:
     settings = load_settings()
-    products = load_products()
-    product = pick_product_for_this_run(products, settings)
     collected_at = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
-
-    raw_orders = fetch_market_orders(settings, int(product["kind"]))
-    rows = summarize_orders(raw_orders, product, collected_at)
+    payload = fetch_market_ticker(settings)
+    rows = normalize_rows(payload, collected_at)
     if not rows:
-        raise RuntimeError(f"No llegaron órdenes útiles para {product}")
-
+        raise RuntimeError(f"El ticker no devolvió filas utilizables. Payload ejemplo: {str(payload)[:500]}")
     append_history(rows)
     history = load_history()
     phase_rows = build_latest_phase(history, settings)
     write_phase(phase_rows)
-
-    print(f"Producto recolectado: {product['name']} ({product['kind']})")
-    print(f"Filas agregadas: {len(rows)}")
-    print(f"Historial total: {len(history)}")
-    print(f"Fases actuales: {len(phase_rows)}")
+    print(f"Collected {len(rows)} ticker rows at {collected_at}")
+    print(f"History rows: {len(history)}")
+    print(f"Phase rows: {len(phase_rows)}")
 
 
 if __name__ == "__main__":
