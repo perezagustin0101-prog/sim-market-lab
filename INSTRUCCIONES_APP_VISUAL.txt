@@ -1,6 +1,6 @@
-APP VISUAL V1.7 REAL — SLOTS VS NIVELES
+APP VISUAL V1.8 — ESTRUCTURA POR BLOQUES
 
-Reemplazar en el repo:
+Reemplazar en GitHub:
 - app.py
 - INSTRUCCIONES_APP_VISUAL.txt
 
@@ -9,8 +9,23 @@ No tocar:
 - settings.json
 - historial_mercado.csv
 
-Corrección principal:
-- La app distingue entre crear 1 edificio nuevo nivel 1 en un slot vacío y subir de nivel un edificio existente.
-- El slot vacío nunca significa crear 3 centrales ni reconstruir la empresa.
-- Con capital disponible en 0, la app avisa que la decisión real es no construir todavía.
-- Central extra solo aparece si hay cuello real de electricidad, no para vender electricidad sobrante.
+Cambio principal:
+La app ya no mezcla cantidad de edificios con niveles.
+
+Ejemplo actual:
+- Central eléctrica — nivel 1
+- Embalse de agua — nivel 1
+- Granjas semilleras — cantidad 1, nivel 1
+- Granjas de venta — cantidad 3, nivel 1
+
+Si desbloqueás un slot:
+- Tocás + Slot o subís "Slots desbloqueados".
+- Elegís qué querés probar en "Qué querés probar en 1 slot vacío".
+
+Si subís de nivel un edificio existente:
+- NO agregás slots.
+- Solo cambiás el nivel del bloque.
+
+Ejemplo:
+Central nivel 2 = una sola central mejorada.
+No es lo mismo que 2 centrales nivel 1.

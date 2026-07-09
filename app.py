@@ -12,14 +12,14 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Market Lab — Slots Reales",
+    page_title="Market Lab — Estructura por Slots",
     page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
 # =============================
-# Estilo
+# Estilo visual
 # =============================
 st.markdown(
     """
@@ -33,7 +33,7 @@ st.markdown(
         border-right: 1px solid rgba(255,255,255,0.09);
     }
     .title {
-        font-size: 2.45rem;
+        font-size: 2.35rem;
         line-height: 1.05;
         font-weight: 950;
         letter-spacing: -0.05em;
@@ -76,7 +76,7 @@ st.markdown(
         margin: 0 0 8px 0;
     }
     .big {
-        font-size: 1.85rem;
+        font-size: 1.75rem;
         font-weight: 950;
         color: white;
         margin: 0;
@@ -99,6 +99,13 @@ st.markdown(
     .pill-good { background: rgba(89,230,139,.15); color:#59e68b; border-color: rgba(89,230,139,.32); }
     .pill-warn { background: rgba(255,209,102,.16); color:#ffd166; border-color: rgba(255,209,102,.32); }
     .pill-blue { background: rgba(91,141,255,.17); color:#8eb0ff; border-color: rgba(91,141,255,.32); }
+    .slot-box {
+        background: rgba(255,255,255,0.055);
+        border: 1px solid rgba(255,255,255,0.10);
+        border-radius: 18px;
+        padding: 14px 16px;
+        margin-bottom: 9px;
+    }
     div[data-testid="stMetric"] {
         background: rgba(255,255,255,0.06);
         border: 1px solid rgba(255,255,255,0.10);
@@ -209,19 +216,6 @@ if not hist.empty:
 for _, r in products.iterrows():
     latest_prices.setdefault(str(r["producto"]), float(r.get("precio_default", 0) or 0))
 
-hist_stats = {}
-if not hist.empty:
-    q0 = hist[hist["quality"] == 0]
-    for kind, g in q0.groupby("kind"):
-        ps = g["price"].dropna()
-        if len(ps) >= 3:
-            hist_stats[int(kind)] = {
-                "p20": float(ps.quantile(0.20)),
-                "p50": float(ps.quantile(0.50)),
-                "p80": float(ps.quantile(0.80)),
-                "n": int(len(ps)),
-            }
-
 
 def get_building(name: str) -> pd.Series:
     m = buildings[buildings["edificio"] == name]
@@ -240,66 +234,73 @@ deposito = get_building("Depósito de Embarque")
 seed_product = get_product("Semillas")
 
 # =============================
-# Sidebar realista
+# Sidebar: estructura real por bloques
 # =============================
-st.sidebar.markdown("# ⚙️ Tu empresa real")
-st.sidebar.caption("Modo real: respeta edificios existentes. Slot vacío = 1 edificio nuevo nivel 1. Subir nivel es otra decisión.")
+st.sidebar.markdown("# 🧱 Estructura real")
+st.sidebar.caption("Cada bloque es un edificio real. El número del edificio es el NIVEL, no la cantidad de slots.")
 
-empresa_cfg = config.get("empresa_actual", {})
-slots_total = st.sidebar.number_input("Slots desbloqueados", min_value=3, max_value=30, value=7, step=1)
-st.sidebar.markdown("### Edificios que YA tenés")
-current_central = st.sidebar.number_input("Central eléctrica", 0, 20, int(empresa_cfg.get("Central eléctrica", {}).get("cantidad", 1)), 1)
-current_embalse = st.sidebar.number_input("Embalse de agua", 0, 20, int(empresa_cfg.get("Embalse de agua", {}).get("cantidad", 1)), 1)
-current_granja = st.sidebar.number_input("Granja", 0, 30, int(empresa_cfg.get("Granja", {}).get("cantidad", 4)), 1)
-current_deposito = st.sidebar.number_input("Depósito de Embarque", 0, 20, int(empresa_cfg.get("Depósito de Embarque", {}).get("cantidad", 0)), 1)
+if "slots_desbloqueados" not in st.session_state:
+    st.session_state.slots_desbloqueados = 7
 
-used_slots_now = int(current_central + current_embalse + current_granja + current_deposito)
+col_a, col_b = st.sidebar.columns([2, 1])
+with col_a:
+    slots_total = st.number_input("Slots desbloqueados", 3, 30, int(st.session_state.slots_desbloqueados), 1)
+with col_b:
+    st.write("")
+    st.write("")
+    if st.button("+ Slot", use_container_width=True):
+        st.session_state.slots_desbloqueados = int(slots_total) + 1
+        st.rerun()
+slots_total = int(slots_total)
+st.session_state.slots_desbloqueados = slots_total
+
+st.sidebar.markdown("### Bloques actuales")
+st.sidebar.markdown("**Soporte**")
+central_level = st.sidebar.number_input("Central eléctrica — nivel", 0, 20, 1, 1)
+embalse_level = st.sidebar.number_input("Embalse de agua — nivel", 0, 20, 1, 1)
+semillera_count = st.sidebar.number_input("Granjas semilleras — cantidad", 0, 20, 1, 1)
+semillera_level = st.sidebar.number_input("Nivel de cada granja semillera", 1, 20, 1, 1)
+
+st.sidebar.markdown("**Producción para vender**")
+venta_count = st.sidebar.number_input("Granjas de venta — cantidad", 0, 30, 3, 1)
+venta_level = st.sidebar.number_input("Nivel de cada granja de venta", 1, 20, 1, 1)
+
+with st.sidebar.expander("Opcional: Depósito de Embarque", expanded=False):
+    deposito_count = st.number_input("Depósitos — cantidad", 0, 20, 0, 1)
+    deposito_level = st.number_input("Nivel de cada depósito", 1, 20, 1, 1)
+
+used_slots_now = int((1 if central_level > 0 else 0) + (1 if embalse_level > 0 else 0) + semillera_count + venta_count + deposito_count)
 empty_slots = int(slots_total - used_slots_now)
 if empty_slots < 0:
-    st.sidebar.error("Tenés más edificios cargados que slots desbloqueados. Corregí los números.")
+    st.sidebar.error(f"Te pasaste de slots: usás {used_slots_now} y tenés {slots_total}.")
     st.stop()
 st.sidebar.info(f"Slots usados: {used_slots_now} · Slots vacíos: {empty_slots}")
 
-st.sidebar.markdown("### Caja y construcción")
-capital_disponible = st.sidebar.number_input(
-    "Capital disponible para construir ahora",
-    min_value=0,
-    max_value=10_000_000,
-    value=0,
-    step=100,
-    help="Si estás sin plata, la app NO te empuja a construir. El slot vacío queda como plan futuro."
-)
-mostrar_plan_futuro = st.sidebar.checkbox(
-    "Mostrar plan futuro aunque no tenga capital",
-    value=True,
-    help="Solo para mirar. No significa construir ahora."
-)
+st.sidebar.markdown("### Slot vacío")
+slot_choice = "Nada por ahora"
+if empty_slots > 0:
+    slot_choice = st.sidebar.selectbox(
+        "Qué querés probar en 1 slot vacío",
+        ["Nada por ahora", "Granja de venta", "Granja semillera", "Embalse de agua", "Central eléctrica", "Depósito de Embarque"],
+        index=0,
+    )
+else:
+    st.sidebar.caption("No hay slot vacío para probar edificio nuevo.")
 
-st.sidebar.markdown("### Decisión")
-sale_mode = st.sidebar.radio("Canal de venta", ["Mercado", "Contrato", "Mejor automático"], index=0)
-sell_surplus = st.sidebar.checkbox("Vender excedentes", value=True, help="Vende electricidad, agua o semillas sobrantes para flujo de caja.")
-real_mode = st.sidebar.checkbox("Modo real: NO destruir ni reemplazar edificios", value=True)
-use_empty_slots = st.sidebar.checkbox("Evaluar 1 edificio nuevo en el slot vacío", value=True)
-considerar_subir_nivel = st.sidebar.checkbox(
-    "Mostrar módulo: subir nivel de edificio existente",
-    value=False,
-    help="No usa slot, pero suele ser más caro y tarda más. Lo vemos separado para no confundirlo con construir edificios nuevos."
-)
-allow_extra_power_business = False
-consider_depot = st.sidebar.checkbox("Considerar Depósito de Embarque", value=False, help="Apagado por defecto porque ocupa un slot y hoy probablemente no compense.")
+st.sidebar.markdown("### Venta")
+sale_mode = st.sidebar.radio("Canal", ["Mercado", "Contrato", "Mejor automático"], index=0)
+sell_surplus = st.sidebar.checkbox("Vender excedentes", value=True)
 
-st.sidebar.markdown("---")
-st.sidebar.markdown("### 🌍 Fase")
-fase = st.sidebar.selectbox("Fase económica", ["Recesión", "Normal", "Boom"], index=1)
 with st.sidebar.expander("Ajustes avanzados", expanded=False):
+    fase = st.selectbox("Fase económica", ["Recesión", "Normal", "Boom"], index=1)
     production_mult = st.number_input("Multiplicador producción", 0.50, 1.50, 1.00, 0.01)
     salary_mult = st.number_input("Multiplicador salario", 0.50, 1.50, 1.00, 0.01)
     market_fee = st.slider("Comisión mercado", 0.0, 0.10, float(config.get("comision_mercado", 0.04)), 0.005)
     contract_discount = st.slider("Descuento contrato", 0.0, 0.10, float(config.get("descuento_contrato", 0.03)), 0.005)
-    director_reduction = st.slider("Reducción administración director", 0.0, 0.80, float(config.get("reduccion_admin_director", 0.0)), 0.01)
+    director_reduction = st.slider("Reducción admin por director", 0.0, 0.80, float(config.get("reduccion_admin_director", 0.0)), 0.01)
 
 # =============================
-# Constantes base
+# Motor de cálculo por niveles
 # =============================
 central_prod_base = float(central["produccion_h"]) * production_mult
 embalse_prod_base = float(embalse["produccion_h"]) * production_mult
@@ -310,12 +311,33 @@ transport_market_price = float(latest_prices.get("Transporte", config.get("preci
 diesel_price = float(latest_prices.get("Diésel", config.get("precio_diesel_default", 40.75)))
 
 
-def plan_admin(total_buildings: int) -> float:
-    return max(0.0, (int(total_buildings) - 1) / 170.0) * (1 - director_reduction)
+def admin_from_levels(total_levels: float) -> float:
+    return max(0.0, (float(total_levels) - 1.0) / 170.0) * (1.0 - director_reduction)
 
 
-def plan_unit_costs(total_buildings: int) -> dict:
-    admin = plan_admin(total_buildings)
+def total_levels_of(plan: dict) -> float:
+    return (
+        plan["central_level"]
+        + plan["embalse_level"]
+        + plan["semillera_count"] * plan["semillera_level"]
+        + plan["venta_count"] * plan["venta_level"]
+        + plan["deposito_count"] * plan["deposito_level"]
+    )
+
+
+def slots_of(plan: dict) -> int:
+    return int(
+        (1 if plan["central_level"] > 0 else 0)
+        + (1 if plan["embalse_level"] > 0 else 0)
+        + plan["semillera_count"]
+        + plan["venta_count"]
+        + plan["deposito_count"]
+    )
+
+
+def plan_unit_costs(plan: dict) -> dict:
+    total_levels = total_levels_of(plan)
+    admin = admin_from_levels(total_levels)
     central_salary = float(central["salario_h"]) * salary_mult * (1 + admin)
     embalse_salary = float(embalse["salario_h"]) * salary_mult * (1 + admin)
     granja_salary = float(granja["salario_h"]) * salary_mult * (1 + admin)
@@ -332,6 +354,7 @@ def plan_unit_costs(total_buildings: int) -> dict:
     )
     return {
         "admin": admin,
+        "total_levels": total_levels,
         "central_salary": central_salary,
         "embalse_salary": embalse_salary,
         "granja_salary": granja_salary,
@@ -365,10 +388,10 @@ def chosen_net_price(product_name: str, transport_unit_cost: float) -> Tuple[str
     return ("Contrato", c) if c > m else ("Mercado", m)
 
 
-def physical_water_capacity(central_slots: int, embalse_slots: int) -> tuple[float, float, float, bool]:
-    elec_total = central_slots * central_prod_base
-    elec_for_embalse_full = embalse_slots * embalse_elec_need_base
-    embalse_water_full = embalse_slots * embalse_prod_base
+def physical_water_capacity(plan: dict) -> tuple[float, float, float, bool]:
+    elec_total = plan["central_level"] * central_prod_base
+    elec_for_embalse_full = plan["embalse_level"] * embalse_elec_need_base
+    embalse_water_full = plan["embalse_level"] * embalse_prod_base
     elec_shortage = elec_for_embalse_full > elec_total + 1e-9
     if not elec_shortage:
         water = embalse_water_full
@@ -387,20 +410,22 @@ def product_unit_cost(crop_name: str, costs: dict) -> float:
     return safe_div(costs["granja_salary"] + water_need * costs["water_unit_cost"] + seed_need * costs["seed_unit_cost"], prod)
 
 
-def simulate_plan(central_slots: int, embalse_slots: int, seed_farms: int, crop_farms: int, depot_slots: int, crop_name: str, etiqueta: str = "") -> dict:
-    total_buildings = central_slots + embalse_slots + seed_farms + crop_farms + depot_slots
-    costs = plan_unit_costs(total_buildings)
-    transport_unit_cost = transport_market_price  # V1: por defecto se compra transporte.
+def simulate_plan(plan: dict, crop_name: str, etiqueta: str = "") -> dict:
+    costs = plan_unit_costs(plan)
+    transport_unit_cost = transport_market_price  # Por ahora se compra transporte.
 
-    water_cap, elec_total, elec_surplus, elec_shortage = physical_water_capacity(central_slots, embalse_slots)
+    water_cap, elec_total, elec_surplus, elec_shortage = physical_water_capacity(plan)
     r = get_product(crop_name)
 
-    crop_prod_per_farm = float(r["produccion_h"]) * production_mult
-    crop_water_per_farm = float(r["agua_necesaria_h"]) * production_mult
-    crop_seed_per_farm = float(r["semillas_necesarias_h"]) * production_mult
+    crop_prod_per_level = float(r["produccion_h"]) * production_mult
+    crop_water_per_level = float(r["agua_necesaria_h"]) * production_mult
+    crop_seed_per_level = float(r["semillas_necesarias_h"]) * production_mult
 
-    seed_production = seed_farms * seed_prod_base
-    seed_water = seed_farms * seed_water_need_base
+    semillera_levels = plan["semillera_count"] * plan["semillera_level"]
+    venta_levels = plan["venta_count"] * plan["venta_level"]
+
+    seed_production = semillera_levels * seed_prod_base
+    seed_water = semillera_levels * seed_water_need_base
 
     if seed_water > water_cap and seed_water > 0:
         seed_factor = water_cap / seed_water
@@ -411,9 +436,9 @@ def simulate_plan(central_slots: int, embalse_slots: int, seed_farms: int, crop_
         seed_production_real = seed_production
         water_left = water_cap - seed_water
 
-    crop_output_full = crop_farms * crop_prod_per_farm
-    crop_water_full = crop_farms * crop_water_per_farm
-    crop_seed_full = crop_farms * crop_seed_per_farm
+    crop_output_full = venta_levels * crop_prod_per_level
+    crop_water_full = venta_levels * crop_water_per_level
+    crop_seed_full = venta_levels * crop_seed_per_level
 
     factor_by_water = 1.0 if crop_water_full <= 0 else min(1.0, safe_div(water_left, crop_water_full))
     factor_by_seed = 1.0 if crop_seed_full <= 0 else min(1.0, safe_div(seed_production_real, crop_seed_full))
@@ -468,12 +493,15 @@ def simulate_plan(central_slots: int, embalse_slots: int, seed_farms: int, crop_
         "Etiqueta": etiqueta,
         "Producto": crop_name,
         "Canal": channel,
-        "Central": central_slots,
-        "Embalse": embalse_slots,
-        "Granja semillas": seed_farms,
-        "Granja venta": crop_farms,
-        "Depósito": depot_slots,
-        "Slots usados": total_buildings,
+        "Central nivel": plan["central_level"],
+        "Embalse nivel": plan["embalse_level"],
+        "Granjas semilleras": plan["semillera_count"],
+        "Nivel semillera": plan["semillera_level"],
+        "Granjas venta": plan["venta_count"],
+        "Nivel granjas venta": plan["venta_level"],
+        "Depósitos": plan["deposito_count"],
+        "Slots usados": slots_of(plan),
+        "Niveles totales": costs["total_levels"],
         "Admin": costs["admin"],
         "Producción vendible/h": output,
         "Beneficio cultivo/h": crop_profit_h,
@@ -495,83 +523,67 @@ def simulate_plan(central_slots: int, embalse_slots: int, seed_farms: int, crop_
 
 farm_crops = products[(products["edificio"] == "Granja") & (products["producto"] != "Semillas")]["producto"].tolist()
 
+current_plan = {
+    "central_level": int(central_level),
+    "embalse_level": int(embalse_level),
+    "semillera_count": int(semillera_count),
+    "semillera_level": int(semillera_level),
+    "venta_count": int(venta_count),
+    "venta_level": int(venta_level),
+    "deposito_count": int(deposito_count),
+    "deposito_level": int(deposito_level),
+}
 
-def best_split_for_fixed_buildings(c: int, e: int, g_total: int, d: int, etiqueta: str = "") -> pd.DataFrame:
-    plans: List[dict] = []
-    if g_total <= 0:
+
+def best_crop_for_plan(plan: dict, etiqueta: str = "Actual") -> pd.DataFrame:
+    rows = [simulate_plan(plan, crop, etiqueta) for crop in farm_crops if plan["venta_count"] > 0]
+    if not rows:
         return pd.DataFrame()
-    for seed_f in range(0, g_total + 1):
-        crop_f = g_total - seed_f
-        if crop_f < 1:
-            continue
-        for crop in farm_crops:
-            plans.append(simulate_plan(c, e, seed_f, crop_f, d, crop, etiqueta=etiqueta))
-    if not plans:
-        return pd.DataFrame()
-    return pd.DataFrame(plans).sort_values("Beneficio total/h", ascending=False).reset_index(drop=True)
+    return pd.DataFrame(rows).sort_values("Beneficio total/h", ascending=False).reset_index(drop=True)
 
-
-current_plans = best_split_for_fixed_buildings(current_central, current_embalse, current_granja, current_deposito, "Actual")
+current_plans = best_crop_for_plan(current_plan, "Actual")
 if current_plans.empty:
-    st.error("Con los edificios actuales no se pudo simular un plan. Revisá que tengas al menos 1 granja.")
+    st.error("No hay granjas de venta cargadas. Agregá al menos 1 granja de venta para comparar cultivos.")
     st.stop()
 current_best = current_plans.iloc[0].to_dict()
 
-future_plans: List[dict] = []
-if use_empty_slots and empty_slots > 0 and (capital_disponible > 0 or mostrar_plan_futuro):
-    # En modo real no se reemplaza nada: solo se agregan edificios al slot vacío.
-    # Por defecto se comparan opciones de 1 edificio nuevo, no se inventa una empresa desde cero.
-    candidates = ["Granja", "Embalse de agua"]
-    if consider_depot:
-        candidates.append("Depósito de Embarque")
-    # Central extra solo aparece si DE VERDAD falta electricidad para que funcionen los edificios actuales.
-    # Nunca se recomienda una central nueva solo como negocio de vender electricidad sobrante.
-    current_has_electricity_bottleneck = "electricidad" in str(current_best.get("Cuello", ""))
-    if current_has_electricity_bottleneck:
-        candidates.append("Central eléctrica")
-
-    for new_building in candidates:
-        c, e, g, d = current_central, current_embalse, current_granja, current_deposito
-        if new_building == "Central eléctrica":
-            c += 1
-        elif new_building == "Embalse de agua":
-            e += 1
-        elif new_building == "Granja":
-            g += 1
-        elif new_building == "Depósito de Embarque":
-            d += 1
-        df = best_split_for_fixed_buildings(c, e, g, d, f"Agregar {new_building}")
-        if not df.empty:
-            best_candidate = df.iloc[0].to_dict()
-            best_candidate["Nuevo edificio"] = new_building
-            best_candidate["Mejora vs actual/h"] = best_candidate["Beneficio total/h"] - current_best["Beneficio total/h"]
-            future_plans.append(best_candidate)
-
-future_df = pd.DataFrame(future_plans)
-if not future_df.empty:
-    future_df = future_df.sort_values("Mejora vs actual/h", ascending=False).reset_index(drop=True)
-    future_best = future_df.iloc[0].to_dict()
-else:
-    future_best = None
+slot_plan = None
+slot_best = None
+slot_plans = pd.DataFrame()
+if empty_slots > 0 and slot_choice != "Nada por ahora":
+    slot_plan = dict(current_plan)
+    if slot_choice == "Granja de venta":
+        slot_plan["venta_count"] += 1
+    elif slot_choice == "Granja semillera":
+        slot_plan["semillera_count"] += 1
+    elif slot_choice == "Embalse de agua":
+        slot_plan["embalse_level"] += 1  # Nuevo embalse nivel 1: suma 1 nivel y 1 slot.
+    elif slot_choice == "Central eléctrica":
+        slot_plan["central_level"] += 1  # Nueva central nivel 1: suma 1 nivel y 1 slot.
+    elif slot_choice == "Depósito de Embarque":
+        slot_plan["deposito_count"] += 1
+    slot_plans = best_crop_for_plan(slot_plan, f"+ {slot_choice}")
+    if not slot_plans.empty:
+        slot_best = slot_plans.iloc[0].to_dict()
 
 # =============================
 # UI principal
 # =============================
-st.markdown('<div class="title">🏭 Plan real de producción</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Primero usa tu empresa actual. El slot vacío se evalúa como <b>1 edificio nuevo nivel 1</b>. Subir una central a nivel 3 es otra decisión y va separada.</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">🏭 Estructura simple por slots</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Ahora la app separa edificios reales: 1 central, 1 embalse, 1 granja semillera y 3 granjas de venta. Si subís de nivel, cambiás el nivel del bloque; no se inventan slots nuevos.</div>', unsafe_allow_html=True)
 
 st.markdown(
     f"""
     <div class="hero">
-        <div class="small">Plan actual usando tus edificios reales: <b>{used_slots_now} usados</b> · <b>{empty_slots} vacío(s)</b></div>
-        <div style="font-size:2.15rem;font-weight:950;margin-top:4px;">
-            {current_best['Producto']} · {money(current_best['Beneficio total/h'])}/h
+        <div class="small">Tu estructura actual · <b>{used_slots_now} slots usados</b> · <b>{empty_slots} slot(s) vacío(s)</b></div>
+        <div style="font-size:2.05rem;font-weight:950;margin-top:4px;">
+            Mejor cultivo: {current_best['Producto']} · {money(current_best['Beneficio total/h'])}/h
         </div>
         <div style="margin-top:10px;">
-            <span class="pill pill-blue">{int(current_best['Central'])} Central real</span>
-            <span class="pill pill-blue">{int(current_best['Embalse'])} Embalse real</span>
-            <span class="pill pill-good">{int(current_best['Granja semillas'])} Granja semillas</span>
-            <span class="pill pill-good">{int(current_best['Granja venta'])} Granja venta</span>
+            <span class="pill pill-blue">Central nivel {int(current_best['Central nivel'])}</span>
+            <span class="pill pill-blue">Embalse nivel {int(current_best['Embalse nivel'])}</span>
+            <span class="pill pill-good">{int(current_best['Granjas semilleras'])} semillera(s) N{int(current_best['Nivel semillera'])}</span>
+            <span class="pill pill-good">{int(current_best['Granjas venta'])} granja(s) venta N{int(current_best['Nivel granjas venta'])}</span>
             <span class="pill pill-warn">Venta: {current_best['Canal']}</span>
             <span class="pill">Cuello: {current_best['Cuello']}</span>
         </div>
@@ -581,88 +593,59 @@ st.markdown(
 )
 
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Beneficio actual/h", money(current_best["Beneficio total/h"]))
+c1.metric("Beneficio total/h", money(current_best["Beneficio total/h"]))
 c2.metric("Cultivo/h", money(current_best["Beneficio cultivo/h"]))
 c3.metric("Excedentes/h", money(current_best["Beneficio excedentes/h"]))
-c4.metric("Producción vendible/h", num(current_best["Producción vendible/h"], 1))
+c4.metric("Admin", pct(current_best["Admin"]))
 
-if capital_disponible <= 0 and empty_slots > 0:
-    st.warning("Tenés 1 slot vacío, pero sin capital disponible la recomendación real es NO construir todavía. Usá esta app para optimizar las 4 granjas actuales y vender excedentes para hacer caja.")
-
-if future_best is not None:
-    st.markdown(
-        f"""
-        <div class="hero-soft">
-            <div class="small">Plan futuro para el slot vacío: agrega <b>1 solo edificio nivel 1</b>, sin destruir nada:</div>
-            <div style="font-size:1.7rem;font-weight:950;margin-top:4px;">
-                Agregar {future_best['Nuevo edificio']} · mejora estimada {money(future_best['Mejora vs actual/h'])}/h
-            </div>
-            <div style="margin-top:10px;">
-                <span class="pill pill-blue">Quedaría: {int(future_best['Central'])} Central</span>
-                <span class="pill pill-blue">{int(future_best['Embalse'])} Embalse</span>
-                <span class="pill pill-good">{int(future_best['Granja semillas'])} Granja semillas</span>
-                <span class="pill pill-good">{int(future_best['Granja venta'])} Granja venta</span>
-                <span class="pill pill-warn">Producto: {future_best['Producto']}</span>
-                <span class="pill">Cuello: {future_best['Cuello']}</span>
-            </div>
-            <div class="small" style="margin-top:8px;">Esto NO significa construir ahora mismo. Si tu capital disponible es 0, la decisión real es seguir usando lo actual y dejar el slot vacío hasta juntar caja.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-elif empty_slots > 0:
-    st.info("Tenés slot vacío, pero no hay recomendación futura activa. Si no tenés capital, está perfecto: no hay que construir por construir.")
-else:
-    st.info("No tenés slots vacíos. La app solo optimiza cómo usar tus edificios actuales.")
-
-st.markdown("### Qué hace cada bloque actual")
-b1, b2, b3 = st.columns(3)
+st.markdown("### Bloques actuales")
+b1, b2, b3, b4 = st.columns(4)
 with b1:
-    st.markdown(
-        f"""
-        <div class="card">
-            <h3>Soporte fijo</h3>
-            <div class="big">{int(current_best['Central'])} + {int(current_best['Embalse'])}</div>
-            <div class="small">Son los edificios que ya tenés. No se reemplazan. No se crean centrales extra salvo falta real de electricidad.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="card"><h3>Central</h3><div class="big">Nivel {int(central_level)}</div><div class="small">1 slot. Si la subís a nivel 2, cambiás este número; no agregás otra central.</div></div>', unsafe_allow_html=True)
 with b2:
-    st.markdown(
-        f"""
-        <div class="card">
-            <h3>Semillas</h3>
-            <div class="big good">{int(current_best['Granja semillas'])} granja(s)</div>
-            <div class="small">Produce {num(current_best['Semillas producidas/h'],1)} semillas/h · usa {num(current_best['Semillas usadas/h'],1)} · sobra {num(current_best['Semillas sobrantes/h'],1)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="card"><h3>Embalse</h3><div class="big">Nivel {int(embalse_level)}</div><div class="small">1 slot. Produce agua usando electricidad propia.</div></div>', unsafe_allow_html=True)
 with b3:
-    st.markdown(
-        f"""
-        <div class="card">
-            <h3>Producto de caja</h3>
-            <div class="big warn">{int(current_best['Granja venta'])} granja(s)</div>
-            <div class="small">Fabrican {current_best['Producto']} y venden por {current_best['Canal']}.</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown(f'<div class="card"><h3>Semillas</h3><div class="big good">{int(semillera_count)} granja(s)</div><div class="small">Nivel {int(semillera_level)} · {num(current_best["Semillas producidas/h"],1)} semillas/h.</div></div>', unsafe_allow_html=True)
+with b4:
+    st.markdown(f'<div class="card"><h3>Venta</h3><div class="big warn">{int(venta_count)} granja(s)</div><div class="small">Nivel {int(venta_level)} · fabrican el producto recomendado para vender.</div></div>', unsafe_allow_html=True)
+
+if empty_slots > 0:
+    st.markdown("### Slot vacío")
+    if slot_choice == "Nada por ahora":
+        st.info("Tenés slot libre. Elegí en la barra lateral qué edificio querés probar antes de construirlo.")
+    elif slot_best is not None:
+        mejora = slot_best["Beneficio total/h"] - current_best["Beneficio total/h"]
+        st.markdown(
+            f"""
+            <div class="hero-soft">
+                <div class="small">Simulación del slot vacío: <b>{slot_choice}</b> nivel 1. No destruye nada.</div>
+                <div style="font-size:1.65rem;font-weight:950;margin-top:4px;">
+                    Nuevo mejor cultivo: {slot_best['Producto']} · mejora {money(mejora)}/h
+                </div>
+                <div style="margin-top:10px;">
+                    <span class="pill pill-blue">Central nivel total {int(slot_best['Central nivel'])}</span>
+                    <span class="pill pill-blue">Embalse nivel total {int(slot_best['Embalse nivel'])}</span>
+                    <span class="pill pill-good">{int(slot_best['Granjas semilleras'])} semillera(s)</span>
+                    <span class="pill pill-good">{int(slot_best['Granjas venta'])} granja(s) venta</span>
+                    <span class="pill">Cuello: {slot_best['Cuello']}</span>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
 st.markdown("---")
-tab1, tab2, tab3, tab4 = st.tabs(["✅ Plan actual", "🧱 Slot vacío", "📊 Comparar cultivos", "⚙️ Datos"])
+tab1, tab2, tab3, tab4 = st.tabs(["✅ Plan actual", "➕ Probar slot", "📊 Comparar cultivos", "⚙️ Datos"])
 
 with tab1:
-    st.markdown("### Saldos por hora con lo que ya tenés")
+    st.markdown("### Saldos por hora")
     s1, s2, s3 = st.columns(3)
     s1.metric("Electricidad sobrante", num(current_best["Electricidad sobrante/h"], 1))
     s2.metric("Agua sobrante", num(current_best["Agua sobrante/h"], 1))
     s3.metric("Semillas sobrantes", num(current_best["Semillas sobrantes/h"], 1))
 
     if current_best["Excedentes"]:
-        st.markdown("### Excedentes vendidos para flujo de caja")
+        st.markdown("### Excedentes vendidos para caja")
         ex = pd.DataFrame(current_best["Excedentes"])
         ex_view = ex.copy()
         ex_view["Cantidad/h"] = ex_view["Cantidad/h"].map(lambda x: num(x, 1))
@@ -674,47 +657,54 @@ with tab1:
 
     st.markdown("### Lectura rápida")
     if "agua" in str(current_best["Cuello"]):
-        st.warning("Tu plan actual está limitado por agua. Sumar una granja puede no servir si no agregás más agua.")
+        st.warning("Tu estructura está limitada por agua. Antes de sumar más granjas de venta, mirá si el embalse alcanza.")
     elif "semillas" in str(current_best["Cuello"]):
-        st.warning("Tu plan actual está limitado por semillas. La app asignó granjas a semillas para sostener el cultivo.")
+        st.warning("Tu estructura está limitada por semillas. La granja semillera no alcanza para alimentar todo el cultivo elegido.")
     elif "electricidad" in str(current_best["Cuello"]):
-        st.warning("Tu plan actual está limitado por electricidad. Recién ahí tendría sentido mirar otra central.")
+        st.warning("Tu estructura está limitada por electricidad. Recién ahí tiene sentido mirar central.")
     else:
-        st.success("Con tus edificios actuales no aparece un cuello fuerte. El foco es elegir el mejor cultivo y vender excedentes.")
+        st.success("No aparece cuello fuerte. El foco es elegir el cultivo y vender excedentes.")
 
 with tab2:
-    st.markdown("### Slot vacío = 1 edificio nuevo nivel 1")
-    st.caption("No compara '3 centrales nivel 1'. Eso sería usar 3 slots distintos. Tampoco compara subir una central a nivel 3; eso va en otro módulo porque no usa slot y cuesta distinto.")
-    if capital_disponible <= 0:
-        st.warning("Ahora mismo marcaste capital disponible $0. Esta tabla es solo planificación futura, no una orden de construir.")
-    if future_df.empty:
-        st.info("No hay opciones calculadas. Si el slot está vacío pero no tenés dinero, está perfecto: usá esta sección solo para planificar.")
-    else:
-        fv = future_df[["Nuevo edificio", "Producto", "Central", "Embalse", "Granja semillas", "Granja venta", "Beneficio total/h", "Mejora vs actual/h", "Cuello"]].copy()
-        for col in ["Beneficio total/h", "Mejora vs actual/h"]:
-            fv[col] = fv[col].map(money)
-        st.dataframe(fv, hide_index=True, use_container_width=True)
-        st.caption("Estas opciones solo agregan 1 edificio nivel 1 al slot vacío. No borran ni reemplazan los edificios que ya tenés.")
-
-    if considerar_subir_nivel:
-        st.markdown("### Subir nivel de edificios existentes")
-        st.info("Esto queda separado: subir una central de nivel 1 a nivel 2/3 no ocupa slots, pero cuesta y tarda distinto. No lo mezclamos con 'crear edificios nuevos'.")
+    st.markdown("### Probar un edificio nuevo en el slot vacío")
+    st.caption("Esto no sube niveles. Esto solo prueba 1 edificio nuevo nivel 1 en un slot libre.")
+    if empty_slots <= 0:
+        st.info("No tenés slots vacíos.")
+    elif slot_choice == "Nada por ahora":
+        st.info("Elegí un edificio en la barra lateral para simular el slot libre.")
+    elif slot_best is not None:
+        df = slot_plans[["Producto", "Canal", "Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h", "Cuello"]].head(15).copy()
+        for col in ["Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h"]:
+            df[col] = df[col].map(money)
+        st.dataframe(df, hide_index=True, use_container_width=True)
+        st.caption("Si querés subir la central de nivel, no uses esta pestaña: cambiá 'Central — nivel' en la barra lateral.")
 
 with tab3:
-    st.markdown("### Mejor uso de tus 4 granjas actuales")
-    view_cols = ["Producto", "Granja semillas", "Granja venta", "Canal", "Producción vendible/h", "Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h", "Cuello"]
-    top = current_plans[view_cols].head(25).copy()
+    st.markdown("### Comparación de cultivos con tu estructura actual")
+    view_cols = ["Producto", "Canal", "Producción vendible/h", "Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h", "Cuello"]
+    top = current_plans[view_cols].head(30).copy()
     top["Producción vendible/h"] = top["Producción vendible/h"].map(lambda x: num(x, 1))
     for col in ["Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h"]:
         top[col] = top[col].map(money)
     st.dataframe(top, hide_index=True, use_container_width=True)
-    st.caption("Esta tabla solo cambia el reparto interno de tus granjas: cuántas a semillas y cuántas al producto de venta.")
+    st.caption("Esta tabla no cambia la cantidad de granjas. Solo cambia qué producen las granjas de venta.")
 
 with tab4:
-    st.markdown("### Costos base actuales")
-    costs_now = plan_unit_costs(used_slots_now)
+    st.markdown("### Resumen de estructura")
+    estructura = pd.DataFrame([
+        ["Central eléctrica", 1 if central_level > 0 else 0, int(central_level), "Soporte"],
+        ["Embalse de agua", 1 if embalse_level > 0 else 0, int(embalse_level), "Soporte"],
+        ["Granja semillera", int(semillera_count), int(semillera_level), "Semillas"],
+        ["Granjas de venta", int(venta_count), int(venta_level), "Producto a vender"],
+        ["Depósito de Embarque", int(deposito_count), int(deposito_level), "Opcional"],
+    ], columns=["Bloque", "Cantidad de slots", "Nivel", "Rol"])
+    st.dataframe(estructura, hide_index=True, use_container_width=True)
+
+    st.markdown("### Costos base")
+    costs_now = plan_unit_costs(current_plan)
     costs_df = pd.DataFrame([
-        ["Administración actual", pct(costs_now["admin"])],
+        ["Niveles totales para admin", num(costs_now["total_levels"], 0)],
+        ["Administración", pct(costs_now["admin"])],
         ["Electricidad propia", money(costs_now["electricity_unit_cost"])],
         ["Agua propia", money(costs_now["water_unit_cost"])],
         ["Semillas propias", money(costs_now["seed_unit_cost"])],
@@ -724,11 +714,5 @@ with tab4:
     ], columns=["Dato", "Valor"])
     st.dataframe(costs_df, hide_index=True, use_container_width=True)
 
-    st.markdown("### Precios actuales leídos")
-    simple_prices = []
-    for p in ["Electricidad", "Agua", "Semillas", "Grano", "Caña de azúcar", "Verduras", "Algodón", "Madera", "Transporte", "Diésel"]:
-        simple_prices.append([p, money(latest_prices.get(p, 0))])
-    st.dataframe(pd.DataFrame(simple_prices, columns=["Producto", "Precio"]), hide_index=True, use_container_width=True)
-
 st.markdown("---")
-st.caption("V1.7 real: respeta edificios existentes. Slot vacío = 1 edificio nuevo nivel 1. Subir niveles va separado.")
+st.caption("V1.8: estructura por bloques. Nivel ≠ cantidad de edificios. Slot vacío ≠ upgrade de nivel.")
