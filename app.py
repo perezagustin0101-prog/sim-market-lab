@@ -12,7 +12,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Market Lab — Plan Real",
+    page_title="Market Lab — Slots Reales",
     page_icon="🏭",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -243,7 +243,7 @@ seed_product = get_product("Semillas")
 # Sidebar realista
 # =============================
 st.sidebar.markdown("# ⚙️ Tu empresa real")
-st.sidebar.caption("Modo conservador: no destruye edificios ni inventa una empresa nueva.")
+st.sidebar.caption("Modo real: respeta edificios existentes. Slot vacío = 1 edificio nuevo nivel 1. Subir nivel es otra decisión.")
 
 empresa_cfg = config.get("empresa_actual", {})
 slots_total = st.sidebar.number_input("Slots desbloqueados", min_value=3, max_value=30, value=7, step=1)
@@ -260,16 +260,32 @@ if empty_slots < 0:
     st.stop()
 st.sidebar.info(f"Slots usados: {used_slots_now} · Slots vacíos: {empty_slots}")
 
+st.sidebar.markdown("### Caja y construcción")
+capital_disponible = st.sidebar.number_input(
+    "Capital disponible para construir ahora",
+    min_value=0,
+    max_value=10_000_000,
+    value=0,
+    step=100,
+    help="Si estás sin plata, la app NO te empuja a construir. El slot vacío queda como plan futuro."
+)
+mostrar_plan_futuro = st.sidebar.checkbox(
+    "Mostrar plan futuro aunque no tenga capital",
+    value=True,
+    help="Solo para mirar. No significa construir ahora."
+)
+
 st.sidebar.markdown("### Decisión")
 sale_mode = st.sidebar.radio("Canal de venta", ["Mercado", "Contrato", "Mejor automático"], index=0)
 sell_surplus = st.sidebar.checkbox("Vender excedentes", value=True, help="Vende electricidad, agua o semillas sobrantes para flujo de caja.")
 real_mode = st.sidebar.checkbox("Modo real: NO destruir ni reemplazar edificios", value=True)
-use_empty_slots = st.sidebar.checkbox("Evaluar qué poner en slots vacíos", value=True)
-allow_extra_power_business = st.sidebar.checkbox(
-    "Permitir central extra solo para vender electricidad",
+use_empty_slots = st.sidebar.checkbox("Evaluar 1 edificio nuevo en el slot vacío", value=True)
+considerar_subir_nivel = st.sidebar.checkbox(
+    "Mostrar módulo: subir nivel de edificio existente",
     value=False,
-    help="Apagado por defecto. Si ya te sobra electricidad, no recomienda otra central como negocio aparte.",
+    help="No usa slot, pero suele ser más caro y tarda más. Lo vemos separado para no confundirlo con construir edificios nuevos."
 )
+allow_extra_power_business = False
 consider_depot = st.sidebar.checkbox("Considerar Depósito de Embarque", value=False, help="Apagado por defecto porque ocupa un slot y hoy probablemente no compense.")
 
 st.sidebar.markdown("---")
@@ -502,14 +518,16 @@ if current_plans.empty:
 current_best = current_plans.iloc[0].to_dict()
 
 future_plans: List[dict] = []
-if use_empty_slots and empty_slots > 0:
+if use_empty_slots and empty_slots > 0 and (capital_disponible > 0 or mostrar_plan_futuro):
     # En modo real no se reemplaza nada: solo se agregan edificios al slot vacío.
     # Por defecto se comparan opciones de 1 edificio nuevo, no se inventa una empresa desde cero.
     candidates = ["Granja", "Embalse de agua"]
     if consider_depot:
         candidates.append("Depósito de Embarque")
+    # Central extra solo aparece si DE VERDAD falta electricidad para que funcionen los edificios actuales.
+    # Nunca se recomienda una central nueva solo como negocio de vender electricidad sobrante.
     current_has_electricity_bottleneck = "electricidad" in str(current_best.get("Cuello", ""))
-    if allow_extra_power_business or current_has_electricity_bottleneck:
+    if current_has_electricity_bottleneck:
         candidates.append("Central eléctrica")
 
     for new_building in candidates:
@@ -540,7 +558,7 @@ else:
 # UI principal
 # =============================
 st.markdown('<div class="title">🏭 Plan real de producción</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Primero respeta lo que ya construiste. No recomienda destruir edificios ni inventar 3 centrales de la nada.</div>', unsafe_allow_html=True)
+st.markdown('<div class="subtitle">Primero usa tu empresa actual. El slot vacío se evalúa como <b>1 edificio nuevo nivel 1</b>. Subir una central a nivel 3 es otra decisión y va separada.</div>', unsafe_allow_html=True)
 
 st.markdown(
     f"""
@@ -568,11 +586,14 @@ c2.metric("Cultivo/h", money(current_best["Beneficio cultivo/h"]))
 c3.metric("Excedentes/h", money(current_best["Beneficio excedentes/h"]))
 c4.metric("Producción vendible/h", num(current_best["Producción vendible/h"], 1))
 
+if capital_disponible <= 0 and empty_slots > 0:
+    st.warning("Tenés 1 slot vacío, pero sin capital disponible la recomendación real es NO construir todavía. Usá esta app para optimizar las 4 granjas actuales y vender excedentes para hacer caja.")
+
 if future_best is not None:
     st.markdown(
         f"""
         <div class="hero-soft">
-            <div class="small">Cuando tengas dinero para usar el slot vacío, sin destruir nada:</div>
+            <div class="small">Plan futuro para el slot vacío: agrega <b>1 solo edificio nivel 1</b>, sin destruir nada:</div>
             <div style="font-size:1.7rem;font-weight:950;margin-top:4px;">
                 Agregar {future_best['Nuevo edificio']} · mejora estimada {money(future_best['Mejora vs actual/h'])}/h
             </div>
@@ -584,13 +605,13 @@ if future_best is not None:
                 <span class="pill pill-warn">Producto: {future_best['Producto']}</span>
                 <span class="pill">Cuello: {future_best['Cuello']}</span>
             </div>
-            <div class="small" style="margin-top:8px;">Esto NO significa construir ahora mismo. Es solo la opción futura cuando tengas capital y quieras usar el slot vacío.</div>
+            <div class="small" style="margin-top:8px;">Esto NO significa construir ahora mismo. Si tu capital disponible es 0, la decisión real es seguir usando lo actual y dejar el slot vacío hasta juntar caja.</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 elif empty_slots > 0:
-    st.info("Tenés slot vacío, pero no hay recomendación futura activa. Activá 'Evaluar qué poner en slots vacíos' o permití más tipos de edificio.")
+    st.info("Tenés slot vacío, pero no hay recomendación futura activa. Si no tenés capital, está perfecto: no hay que construir por construir.")
 else:
     st.info("No tenés slots vacíos. La app solo optimiza cómo usar tus edificios actuales.")
 
@@ -602,7 +623,7 @@ with b1:
         <div class="card">
             <h3>Soporte fijo</h3>
             <div class="big">{int(current_best['Central'])} + {int(current_best['Embalse'])}</div>
-            <div class="small">Son los edificios que ya tenés. No se reemplazan. La electricidad sobrante se vende si está activado.</div>
+            <div class="small">Son los edificios que ya tenés. No se reemplazan. No se crean centrales extra salvo falta real de electricidad.</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -662,7 +683,10 @@ with tab1:
         st.success("Con tus edificios actuales no aparece un cuello fuerte. El foco es elegir el mejor cultivo y vender excedentes.")
 
 with tab2:
-    st.markdown("### Opciones para el slot vacío")
+    st.markdown("### Slot vacío = 1 edificio nuevo nivel 1")
+    st.caption("No compara '3 centrales nivel 1'. Eso sería usar 3 slots distintos. Tampoco compara subir una central a nivel 3; eso va en otro módulo porque no usa slot y cuesta distinto.")
+    if capital_disponible <= 0:
+        st.warning("Ahora mismo marcaste capital disponible $0. Esta tabla es solo planificación futura, no una orden de construir.")
     if future_df.empty:
         st.info("No hay opciones calculadas. Si el slot está vacío pero no tenés dinero, está perfecto: usá esta sección solo para planificar.")
     else:
@@ -670,7 +694,11 @@ with tab2:
         for col in ["Beneficio total/h", "Mejora vs actual/h"]:
             fv[col] = fv[col].map(money)
         st.dataframe(fv, hide_index=True, use_container_width=True)
-        st.caption("Estas opciones solo agregan edificios al slot vacío. No borran ni reemplazan los edificios que ya tenés.")
+        st.caption("Estas opciones solo agregan 1 edificio nivel 1 al slot vacío. No borran ni reemplazan los edificios que ya tenés.")
+
+    if considerar_subir_nivel:
+        st.markdown("### Subir nivel de edificios existentes")
+        st.info("Esto queda separado: subir una central de nivel 1 a nivel 2/3 no ocupa slots, pero cuesta y tarda distinto. No lo mezclamos con 'crear edificios nuevos'.")
 
 with tab3:
     st.markdown("### Mejor uso de tus 4 granjas actuales")
@@ -703,4 +731,4 @@ with tab4:
     st.dataframe(pd.DataFrame(simple_prices, columns=["Producto", "Precio"]), hide_index=True, use_container_width=True)
 
 st.markdown("---")
-st.caption("V1.6 real: respeta tus edificios existentes. La recomendación principal es cómo usar lo que ya tenés; el slot vacío se evalúa aparte y solo como planificación futura.")
+st.caption("V1.7 real: respeta edificios existentes. Slot vacío = 1 edificio nuevo nivel 1. Subir niveles va separado.")

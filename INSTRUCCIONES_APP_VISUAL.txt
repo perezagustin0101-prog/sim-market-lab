@@ -1,4 +1,4 @@
-APP VISUAL V1.6 REAL
+APP VISUAL V1.7 REAL — SLOTS VS NIVELES
 
 Reemplazar en el repo:
 - app.py
@@ -9,12 +9,8 @@ No tocar:
 - settings.json
 - historial_mercado.csv
 
-Cambio principal:
-La app ya no inventa una empresa desde cero. Primero usa tus edificios reales:
-- Central eléctrica
-- Embalse de agua
-- Granjas
-- Depósito de Embarque
-
-Después muestra el slot vacío como planificación futura.
-No recomienda destruir edificios ni reemplazarlos.
+Corrección principal:
+- La app distingue entre crear 1 edificio nuevo nivel 1 en un slot vacío y subir de nivel un edificio existente.
+- El slot vacío nunca significa crear 3 centrales ni reconstruir la empresa.
+- Con capital disponible en 0, la app avisa que la decisión real es no construir todavía.
+- Central extra solo aparece si hay cuello real de electricidad, no para vender electricidad sobrante.
