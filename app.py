@@ -286,6 +286,19 @@ transport_mode = st.sidebar.radio(
     help="Aunque fabricarlo sea más barato, ocupa un slot. La app muestra la comparación.",
 )
 
+sale_mode = st.sidebar.radio(
+    "Canal de venta para cálculos",
+    ["Solo mercado", "Automático", "Solo contrato"],
+    index=0,
+    help="Para tu etapa actual conviene usar 'Solo mercado'. Contrato queda disponible para cuando vendas volúmenes más grandes.",
+)
+
+sell_surplus_market = st.sidebar.checkbox(
+    "Vender excedentes en mercado",
+    value=True,
+    help="Suma al plan manual la venta de electricidad, agua o semillas que sobran. Para flujo de caja inicial suele ser clave.",
+)
+
 # Total de niveles y administración
 sum_levels = sum(v["niveles_totales"] for v in build_inputs.values())
 admin_base = max(0.0, (sum_levels - 1) / 170.0)
@@ -381,8 +394,15 @@ for _, r in products.iterrows():
     market_profit_u = price * (1 - fee_market) - cost - transport_units * transport_cost_used
     contract_price = price * (1 - contract_discount)
     contract_profit_u = contract_price - cost - (transport_units / 2) * transport_cost_used
-    best_channel = "Contrato" if contract_profit_u > market_profit_u else "Mercado"
-    best_profit_u = max(market_profit_u, contract_profit_u)
+    if sale_mode == "Solo mercado":
+        best_channel = "Mercado"
+        best_profit_u = market_profit_u
+    elif sale_mode == "Solo contrato":
+        best_channel = "Contrato"
+        best_profit_u = contract_profit_u
+    else:
+        best_channel = "Contrato" if contract_profit_u > market_profit_u else "Mercado"
+        best_profit_u = max(market_profit_u, contract_profit_u)
     best_profit_h = best_profit_u * prod_h
 
     stats = hist_stats.get(kind, {})
@@ -491,6 +511,157 @@ def simulate_scenario(central_lv: int, embalse_lv: int, granja_lv: int) -> pd.Da
 
 current_sim = simulate_scenario(central_levels, embalse_levels, granja_levels)
 
+
+def get_product_market_profit_u(product_name: str) -> float:
+    m = prod_df[prod_df["Producto"] == product_name]
+    if m.empty:
+        return 0.0
+    return float(m.iloc[0].get("Beneficio/u mercado", 0) or 0)
+
+
+def get_product_market_net_u(product_name: str) -> float:
+    """Precio neto cobrado por unidad en mercado, ya descontando comisión y transporte.
+    No descuenta el costo propio de fabricar: eso lo hace get_product_market_profit_u.
+    """
+    p_rows = products[products["producto"] == product_name]
+    transport_units = 0.0 if p_rows.empty else float(p_rows.iloc[0].get("transporte_mercado", 0) or 0)
+    price = float(latest_prices.get(product_name, 0) or 0)
+    return price * (1 - fee_market) - transport_units * transport_cost_used
+
+
+def simulate_manual_farm_plan(crop_name: str, seed_farm_qty: int) -> dict:
+    """Simula una asignación manual de granjas: algunas a semillas y el resto al cultivo elegido.
+
+    Asumimos que todas las granjas tienen el mismo nivel promedio elegido en la barra lateral.
+    La simulación prioriza que las granjas de semillas funcionen primero; con el agua restante
+    calcula cuánto puede producir el cultivo de venta.
+    """
+    farm_qty = int(build_inputs["Granja"]["cantidad"])
+    farm_level = int(build_inputs["Granja"]["nivel"])
+    seed_farm_qty = max(0, min(int(seed_farm_qty), farm_qty))
+    crop_farm_qty = max(0, farm_qty - seed_farm_qty)
+
+    crop_matches = products[products["producto"] == crop_name]
+    if crop_matches.empty:
+        return {}
+    crop = crop_matches.iloc[0]
+
+    crop_levels = crop_farm_qty * farm_level
+    seed_levels_manual = seed_farm_qty * farm_level
+
+    crop_prod_per_level = float(crop.get("produccion_h", 0) or 0) * production_phase_mult
+    crop_water_per_level = float(crop.get("agua_necesaria_h", 0) or 0) * production_phase_mult
+    crop_seed_need_per_level = float(crop.get("semillas_necesarias_h", 0) or 0) * production_phase_mult
+
+    seed_prod_per_level = float(seed_row["produccion_h"]) * production_phase_mult
+    seed_water_per_level = float(seed_row["agua_necesaria_h"]) * production_phase_mult
+
+    seed_output_full = seed_levels_manual * seed_prod_per_level
+    seed_water_full = seed_levels_manual * seed_water_per_level
+    crop_output_full = crop_levels * crop_prod_per_level
+    crop_seed_need_full = crop_levels * crop_seed_need_per_level
+    crop_water_full = crop_levels * crop_water_per_level
+
+    water_cap_manual, water_limit_manual = effective_water_capacity(central_levels, embalse_levels)
+    electricity_total_manual = central_levels * electricity_prod_h
+    electricity_used_by_embalse = min(electricity_total_manual, embalse_levels * water_electricity_need)
+    electricity_surplus = max(0.0, electricity_total_manual - electricity_used_by_embalse)
+
+    # Priorizamos las semillas porque son el insumo que destraba el resto.
+    if seed_water_full > water_cap_manual and seed_water_full > 0:
+        seed_water_factor = water_cap_manual / seed_water_full
+        seed_output_effective = seed_output_full * seed_water_factor
+        remaining_water = 0.0
+    else:
+        seed_water_factor = 1.0
+        seed_output_effective = seed_output_full
+        remaining_water = max(0.0, water_cap_manual - seed_water_full)
+
+    seed_factor = 1.0 if crop_seed_need_full <= 0 else min(1.0, safe_div(seed_output_effective, crop_seed_need_full))
+    water_factor = 1.0 if crop_water_full <= 0 else min(1.0, safe_div(remaining_water, crop_water_full))
+    crop_factor = min(seed_factor, water_factor)
+
+    output_effective = crop_output_full * crop_factor
+    seeds_used = crop_seed_need_full * crop_factor
+    water_used = min(seed_water_full, water_cap_manual) + crop_water_full * crop_factor
+    seeds_surplus = seed_output_effective - seeds_used
+    water_surplus = water_cap_manual - water_used
+
+    surplus_rows = []
+    surplus_profit_h = 0.0
+    surplus_revenue_h = 0.0
+    if sell_surplus_market:
+        for surplus_product, surplus_qty in [
+            ("Electricidad", electricity_surplus),
+            ("Agua", max(0.0, water_surplus)),
+            ("Semillas", max(0.0, seeds_surplus)),
+        ]:
+            if surplus_qty <= 1e-9:
+                continue
+            profit_u_surplus = get_product_market_profit_u(surplus_product)
+            net_u_surplus = get_product_market_net_u(surplus_product)
+            profit_h_surplus = surplus_qty * profit_u_surplus
+            revenue_h_surplus = surplus_qty * net_u_surplus
+            surplus_profit_h += profit_h_surplus
+            surplus_revenue_h += revenue_h_surplus
+            surplus_rows.append(
+                {
+                    "Producto": surplus_product,
+                    "Cantidad excedente/h": surplus_qty,
+                    "Neto cobrado/u": net_u_surplus,
+                    "Beneficio/u": profit_u_surplus,
+                    "Beneficio/h": profit_h_surplus,
+                    "Ingreso neto/h": revenue_h_surplus,
+                }
+            )
+
+    pr = prod_df[prod_df["Producto"] == crop_name].iloc[0]
+    if sale_mode == "Solo mercado":
+        channel = "Mercado"
+        profit_u = float(pr["Beneficio/u mercado"])
+    elif sale_mode == "Solo contrato":
+        channel = "Contrato"
+        profit_u = float(pr["Beneficio/u contrato"])
+    else:
+        channel = pr["Mejor canal"]
+        profit_u = max(float(pr["Beneficio/u mercado"]), float(pr["Beneficio/u contrato"]))
+
+    limiting = []
+    if seed_factor < 0.999:
+        limiting.append("semillas")
+    if water_factor < 0.999 or seed_water_factor < 0.999:
+        limiting.append(water_limit_manual)
+    if not limiting:
+        limiting.append("sin cuello fuerte")
+
+    return {
+        "cultivo": crop_name,
+        "canal": channel,
+        "granjas_semillas": seed_farm_qty,
+        "granjas_cultivo": crop_farm_qty,
+        "output_full": crop_output_full,
+        "output_effective": output_effective,
+        "crop_factor": crop_factor,
+        "semillas_producidas": seed_output_effective,
+        "semillas_necesarias": crop_seed_need_full,
+        "semillas_usadas": seeds_used,
+        "semillas_saldo": seeds_surplus,
+        "agua_capacidad": water_cap_manual,
+        "agua_necesaria_full": seed_water_full + crop_water_full,
+        "agua_usada": water_used,
+        "agua_saldo": water_surplus,
+        "electricidad_producida": electricity_total_manual,
+        "electricidad_usada_embalse": electricity_used_by_embalse,
+        "electricidad_saldo": electricity_surplus,
+        "beneficio_u": profit_u,
+        "beneficio_cultivo_h": output_effective * profit_u,
+        "beneficio_excedentes_h": surplus_profit_h,
+        "ingreso_excedentes_h": surplus_revenue_h,
+        "beneficio_h": output_effective * profit_u + surplus_profit_h,
+        "surplus_rows": surplus_rows,
+        "cuello": ", ".join(dict.fromkeys(limiting)),
+    }
+
 scenarios = []
 scenario_defs = [
     ("Actual", central_levels, embalse_levels, granja_levels, deposito_levels),
@@ -537,7 +708,7 @@ with c1:
         <div class="card">
             <h3>Fase + administración</h3>
             <div class="big">{fase_actual}</div>
-            <div class="small">Admin {pct(admin_final)} · prod x{production_phase_mult:.2f} · salario x{salary_phase_mult:.2f}</div>
+            <div class="small">Admin {pct(admin_final)} · prod x{production_phase_mult:.2f} · canal: {sale_mode}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -660,6 +831,75 @@ with tab3:
         d3.metric("Output/h", num(det["Output/h"], 1))
         d4.metric("Beneficio/h", money(det["Beneficio/h"]))
 
+    st.markdown("---")
+    st.subheader("Asignación manual de tus granjas")
+    st.caption("Acá elegís explícitamente cuántas granjas fabrican semillas y cuántas fabrican el producto que vas a vender. Ideal para tu etapa actual con poco capital y venta por mercado.")
+
+    sellable_crops = products[(products["edificio"] == "Granja") & (products["producto"] != "Semillas")]["producto"].tolist()
+    m1, m2 = st.columns([1.2, 1])
+    with m1:
+        manual_crop = st.selectbox("Producto a vender", sellable_crops, index=sellable_crops.index("Grano") if "Grano" in sellable_crops else 0)
+    with m2:
+        total_farms_qty = int(build_inputs["Granja"]["cantidad"])
+        manual_seed_farms = st.slider("Granjas dedicadas a semillas", 0, max(total_farms_qty, 0), min(1, max(total_farms_qty, 0)), 1)
+
+    manual = simulate_manual_farm_plan(manual_crop, manual_seed_farms)
+    if manual:
+        a1, a2, a3, a4 = st.columns(4)
+        a1.metric("Granjas a vender", f"{manual['granjas_cultivo']}")
+        a2.metric("Granjas a semillas", f"{manual['granjas_semillas']}")
+        a3.metric("Canal usado", manual["canal"])
+        a4.metric("Cuello", manual["cuello"])
+
+        b1, b2, b3, b4 = st.columns(4)
+        b1.metric("Producción vendible/h", num(manual["output_effective"], 1), help="Producción real posible después de limitar por semillas y agua.")
+        b2.metric("Beneficio cultivo/h", money(manual["beneficio_cultivo_h"]))
+        b3.metric("Beneficio excedentes/h", money(manual["beneficio_excedentes_h"]))
+        b4.metric("Beneficio total/h", money(manual["beneficio_h"]))
+
+        cex1, cex2, cex3 = st.columns(3)
+        cex1.metric("Electricidad saldo/h", num(manual["electricidad_saldo"], 1))
+        cex2.metric("Agua saldo/h", num(manual["agua_saldo"], 1))
+        cex3.metric("Semillas saldo/h", num(manual["semillas_saldo"], 1))
+
+        if manual.get("surplus_rows"):
+            st.markdown("#### Venta automática de excedentes")
+            surplus_df = pd.DataFrame(manual["surplus_rows"])
+            surplus_view = surplus_df.copy()
+            for col in ["Neto cobrado/u", "Beneficio/u", "Beneficio/h", "Ingreso neto/h"]:
+                surplus_view[col] = surplus_view[col].map(money)
+            surplus_view["Cantidad excedente/h"] = surplus_view["Cantidad excedente/h"].map(lambda x: num(x, 1))
+            st.dataframe(surplus_view, hide_index=True, use_container_width=True)
+            st.caption("Excedente vendido en mercado. Electricidad y agua no usan transporte; semillas sí usan su transporte de mercado.")
+        elif sell_surplus_market:
+            st.caption("No hay excedentes vendibles en este plan manual.")
+        else:
+            st.caption("La venta de excedentes está desactivada en la barra lateral.")
+
+        detail_manual = pd.DataFrame([
+            ["Producción potencial/h", num(manual["output_full"], 1)],
+            ["Producción efectiva/h", num(manual["output_effective"], 1)],
+            ["Semillas producidas/h", num(manual["semillas_producidas"], 1)],
+            ["Semillas requeridas al 100%/h", num(manual["semillas_necesarias"], 1)],
+            ["Semillas usadas/h", num(manual["semillas_usadas"], 1)],
+            ["Agua capacidad/h", num(manual["agua_capacidad"], 1)],
+            ["Agua requerida al 100%/h", num(manual["agua_necesaria_full"], 1)],
+            ["Agua usada/h", num(manual["agua_usada"], 1)],
+            ["Electricidad producida/h", num(manual["electricidad_producida"], 1)],
+            ["Electricidad usada por embalse/h", num(manual["electricidad_usada_embalse"], 1)],
+            ["Electricidad excedente/h", num(manual["electricidad_saldo"], 1)],
+            ["Beneficio por unidad del cultivo", money(manual["beneficio_u"])],
+            ["Beneficio cultivo/h", money(manual["beneficio_cultivo_h"])],
+            ["Beneficio excedentes/h", money(manual["beneficio_excedentes_h"])],
+            ["Beneficio total/h", money(manual["beneficio_h"])],
+        ], columns=["Dato", "Valor"])
+        st.dataframe(detail_manual, hide_index=True, use_container_width=True)
+
+        if sale_mode == "Solo mercado":
+            st.info("Estás calculando solo venta en mercado. Para montos chicos tiene sentido: evitás depender de conseguir comprador por contrato.")
+        elif sale_mode == "Automático":
+            st.warning("El modo automático puede elegir contrato si da más beneficio. Si por ahora querés vender todo en mercado, cambiá el canal en la barra lateral a 'Solo mercado'.")
+
 with tab4:
     st.subheader("Comparador del próximo edificio")
     st.caption("Compara el próximo slot contra tu situación actual. La opción ganadora no siempre es la más obvia: puede depender del cuello de botella.")
@@ -732,4 +972,4 @@ with tab6:
     st.info("Para la cadena actual ya están cargadas Central, Embalse, Granja y Depósito. Para otros edificios conviene ir agregándolos de a uno o por cadena completa.")
 
 st.markdown("---")
-st.caption("V1.1 — Modelo inicial con fase económica editable. Producción y consumo/h escalan por fase; salarios/h quedan editables porque deben calibrarse contra tu interfaz del juego.")
+st.caption("V1.3 — Asignación manual, venta por mercado, excedentes automáticos y fase económica editable. Producción y consumo/h escalan por fase; salarios/h quedan editables porque deben calibrarse contra tu interfaz del juego.")

@@ -1,28 +1,23 @@
-APP VISUAL V1.1 - MARKET LAB
+APP VISUAL V1.3
 
-Archivos incluidos:
+Qué cambia:
+- Agrega venta automática de excedentes en mercado.
+- En el simulador manual, si sobra electricidad, agua o semillas, la app calcula cuánto flujo de caja genera vender ese sobrante.
+- Separa beneficio del cultivo, beneficio de excedentes y beneficio total.
+
+Archivos a subir/reemplazar:
 - app.py
-- requirements.txt
-- data/productos_v1.csv
-- data/edificios_v1.csv
-- data/robots_requeridos.csv
-- data/configuracion_v1.json
-- data/edificios_extra_pendientes.csv
+- INSTRUCCIONES_APP_VISUAL.txt
 
-IMPORTANTE:
-- No reemplazar collector.py.
-- El recolector de mercado sigue como está.
-- Esta versión agrega selector de fase económica.
+No tocar:
+- collector.py
+- settings.json
+- historial_mercado.csv
 
-Fase económica:
-- La app permite elegir Recesión / Normal / Boom.
-- También permite ajustar multiplicador de producción/h y salario/h.
-- Por defecto quedan en 1.0 porque hay que calibrarlos contra los números reales que muestre tu juego.
-- La app asume que si cambia producción/h, también escala el consumo/h de insumos, porque la receta por unidad no cambia.
+Uso recomendado actual:
+- Canal de venta: Solo mercado
+- Vender excedentes en mercado: activado
+- Granjas: elegir cuántas van a Semillas y cuántas al cultivo elegido
 
-Si GitHub no conserva la carpeta data, la app igual intenta leer los CSV/JSON desde la raíz del repo.
-
-Para correr local:
-1. Abrir terminal en la carpeta del repo.
-2. pip install -r requirements.txt
-3. streamlit run app.py
+Nota:
+La venta de excedentes usa mercado. Electricidad y agua tienen transporte 0; semillas usa el transporte cargado en productos_v1.csv.
