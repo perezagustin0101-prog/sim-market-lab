@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2.7",
+    page_title="Sim Companies Business Simulator V2.8",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -316,18 +316,25 @@ if "fuentes_insumos" not in st.session_state:
         {"Insumo": "Diésel", "Fuente": "Mercado", "% propio si Mixta": 0},
         {"Insumo": "Transporte", "Fuente": "Mercado", "% propio si Mixta": 0},
     ])
-DIRECTOR_INPUT_COLUMNS = ["Activo", "Nombre", "Perfil", "Puesto asignado", "Management", "Accounting", "Communication", "Science", "Salario diario"]
-DIRECTOR_EFFECT_COLUMNS = ["Reducción admin %", "Lift contable $M", "Aumento ventas %", "Patentes +pp"]
+DIRECTOR_INPUT_COLUMNS = ["Activo", "Nombre", "Puesto", "Management", "Accounting", "Communication", "Science", "Salario diario"]
+DIRECTOR_EFFECT_COLUMNS = ["Reducción admin %", "Mejora contable $", "Aumento ventas %", "Patentes +pp"]
 DIRECTOR_COLUMNS = DIRECTOR_INPUT_COLUMNS + DIRECTOR_EFFECT_COLUMNS
 DIRECTOR_ROLE_OPTIONS = ["COO", "CFO", "CMO", "CTO", "Staff"]
+
+
+def round_half_up(value: float, decimals: int = 1) -> float:
+    """Redondeo decimal consistente entre tabla y tarjetas."""
+    from decimal import Decimal, ROUND_HALF_UP
+    q = Decimal("1") if decimals == 0 else Decimal("1." + ("0" * decimals))
+    return float(Decimal(str(float(value))).quantize(q, rounding=ROUND_HALF_UP))
 
 
 def _director_role_weight(puesto: str, target_role: str) -> float:
     """Peso del puesto asignado para estimar aportes cruzados.
 
-    El puesto asociado al efecto cuenta completo. Los otros puestos aportan de forma menor.
-    Lo dejamos así para que un director sentado como COO también muestre aportes menores
-    en Accounting/Communication/Science, y viceversa.
+    En Sim Companies importan los puntos/habilidades del director y el puesto donde está asignado.
+    El puesto asociado al efecto cuenta completo; los otros puestos aportan parcialmente.
+    Staff no aplica beneficios directos, pero sirve para entrenar habilidades.
     """
     puesto = str(puesto or "").strip()
     if puesto == "Staff" or puesto == "":
@@ -341,10 +348,18 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
 
     # Migración desde versiones anteriores.
-    if "Puesto asignado" not in out.columns and "Puesto" in out.columns:
-        out["Puesto asignado"] = out["Puesto"]
-    if "Perfil" not in out.columns:
-        out["Perfil"] = out.get("Puesto asignado", out.get("Puesto", "COO"))
+    if "Puesto" not in out.columns:
+        if "Puesto asignado" in out.columns:
+            out["Puesto"] = out["Puesto asignado"]
+        elif "Perfil" in out.columns:
+            out["Puesto"] = out["Perfil"]
+        else:
+            out["Puesto"] = "COO"
+    if "Mejora contable $" not in out.columns:
+        if "Mejora contable $M" in out.columns:
+            out["Mejora contable $"] = pd.to_numeric(out["Mejora contable $M"], errors="coerce").fillna(0) * 1_000_000.0
+        elif "Lift contable $M" in out.columns:
+            out["Mejora contable $"] = pd.to_numeric(out["Lift contable $M"], errors="coerce").fillna(0) * 1_000_000.0
     if "Aumento ventas %" not in out.columns and "Aumento venta %" in out.columns:
         out["Aumento ventas %"] = out["Aumento venta %"]
     if "Patentes +pp" not in out.columns and "Impacto ciencia %" in out.columns:
@@ -354,7 +369,7 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
         if col not in out.columns:
             if col == "Nombre":
                 out[col] = ""
-            elif col in ["Perfil", "Puesto asignado"]:
+            elif col == "Puesto":
                 out[col] = "COO"
             elif col == "Activo":
                 out[col] = False
@@ -365,11 +380,10 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
         out[col] = pd.to_numeric(out[col], errors="coerce").fillna(0.0)
 
     out["Nombre"] = out["Nombre"].fillna("").astype(str)
-    out["Perfil"] = out["Perfil"].fillna("Staff").astype(str)
-    out["Puesto asignado"] = out["Puesto asignado"].fillna("Staff").astype(str)
+    out["Puesto"] = out["Puesto"].fillna("Staff").astype(str)
 
-    # Para evitar el error de cargar datos y olvidarse el check: si una fila tiene nombre,
-    # skills o salario, la activamos automáticamente. Las filas vacías quedan apagadas.
+    # Para evitar cargar datos y olvidarse el check: si una fila tiene nombre, skills o salario,
+    # la activamos automáticamente. Las filas vacías quedan apagadas.
     has_data = (
         out["Nombre"].str.strip().ne("")
         | (out[["Management", "Accounting", "Communication", "Science", "Salario diario"]].abs().sum(axis=1) > 0)
@@ -377,26 +391,30 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
     out["Activo"] = out["Activo"].fillna(False).astype(bool) | has_data
     active_mult = out["Activo"].astype(float)
 
-    # Fórmulas V2.6, separadas por efecto:
-    # Gestión -> reducción administrativa.
-    # Contabilidad -> mejora contable mostrada en millones.
-    # Comunicación -> aumento de ventas retail.
-    # Ciencia -> probabilidad de patente.
-    out["Reducción admin %"] = active_mult * out.apply(
-        lambda r: float(r["Management"]) * _director_role_weight(r.get("Puesto asignado"), "COO"), axis=1
+    # Fórmulas iniciales. Se muestran redondeadas a 1 decimal para que tabla y tarjetas coincidan.
+    admin_vals = active_mult * out.apply(
+        lambda r: float(r["Management"]) * _director_role_weight(r.get("Puesto"), "COO"), axis=1
     )
-    out["Lift contable $M"] = active_mult * out.apply(
-        lambda r: (float(r["Accounting"]) * _director_role_weight(r.get("Puesto asignado"), "CFO")) / 2.0, axis=1
+    accounting_vals = active_mult * out.apply(
+        lambda r: (float(r["Accounting"]) * _director_role_weight(r.get("Puesto"), "CFO")) / 2.0, axis=1
     )
-    out["Aumento ventas %"] = active_mult * out.apply(
-        lambda r: (float(r["Communication"]) * _director_role_weight(r.get("Puesto asignado"), "CMO")) / 12.0, axis=1
+    sales_vals = active_mult * out.apply(
+        lambda r: (float(r["Communication"]) * _director_role_weight(r.get("Puesto"), "CMO")) / 12.0, axis=1
     )
-    out["Patentes +pp"] = active_mult * out.apply(
-        lambda r: (float(r["Science"]) * _director_role_weight(r.get("Puesto asignado"), "CTO")) * 0.125, axis=1
+    science_vals = active_mult * out.apply(
+        lambda r: (float(r["Science"]) * _director_role_weight(r.get("Puesto"), "CTO")) * 0.125, axis=1
     )
 
+    out["Reducción admin %"] = [round_half_up(v, 1) for v in admin_vals]
+    out["Mejora contable $"] = [round_half_up(v * 1_000_000.0, 0) for v in accounting_vals]
+    out["Aumento ventas %"] = [round_half_up(v, 1) for v in sales_vals]
+    out["Patentes +pp"] = [round_half_up(v, 1) for v in science_vals]
+
     # Limpieza de columnas viejas que venían de versiones anteriores.
-    for old_col in ["Puesto", "Aumento venta %", "Impacto ciencia %", "Reducción admin % viejo", "Bono producción %", "Bono venta retail %"]:
+    for old_col in [
+        "Perfil", "Puesto asignado", "Puesto asignado ", "Lift contable $M", "Mejora contable $M", "Puesto viejo",
+        "Aumento venta %", "Impacto ciencia %", "Reducción admin % viejo", "Bono producción %", "Bono venta retail %"
+    ]:
         if old_col in out.columns and old_col not in DIRECTOR_COLUMNS:
             out = out.drop(columns=[old_col])
 
@@ -405,17 +423,17 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
 
 if "directores" not in st.session_state:
     st.session_state["directores"] = pd.DataFrame([
-        {"Activo": False, "Nombre": "", "Perfil": "COO", "Puesto asignado": "COO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
-        {"Activo": False, "Nombre": "", "Perfil": "CFO", "Puesto asignado": "CFO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
-        {"Activo": False, "Nombre": "", "Perfil": "CMO", "Puesto asignado": "CMO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
-        {"Activo": False, "Nombre": "", "Perfil": "CTO", "Puesto asignado": "CTO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "COO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CFO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CMO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CTO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
     ])
 st.session_state["directores"] = add_director_effects(st.session_state["directores"])
 
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.7")
+st.title("Sim Companies Business Simulator V2.8")
 st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
@@ -470,7 +488,7 @@ with st.container(border=True):
     st.markdown("**Directores**")
     directores_base = add_director_effects(st.session_state["directores"]).copy()
 
-    with st.form("form_directores_v27", clear_on_submit=False):
+    with st.form("form_directores_v28", clear_on_submit=False):
         directores_editados = st.data_editor(
             directores_base,
             use_container_width=True,
@@ -479,19 +497,18 @@ with st.container(border=True):
             disabled=DIRECTOR_EFFECT_COLUMNS,
             column_config={
                 "Activo": st.column_config.CheckboxColumn("Activo"),
-                "Perfil": st.column_config.SelectboxColumn("Perfil", options=DIRECTOR_ROLE_OPTIONS),
-                "Puesto asignado": st.column_config.SelectboxColumn("Puesto asignado", options=DIRECTOR_ROLE_OPTIONS),
+                "Puesto": st.column_config.SelectboxColumn("Puesto", options=DIRECTOR_ROLE_OPTIONS),
                 "Management": st.column_config.NumberColumn("Gestión", min_value=0, max_value=999, step=1),
                 "Accounting": st.column_config.NumberColumn("Contabilidad", min_value=0, max_value=999, step=1),
                 "Communication": st.column_config.NumberColumn("Comunicación", min_value=0, max_value=999, step=1),
                 "Science": st.column_config.NumberColumn("Ciencia", min_value=0, max_value=999, step=1),
                 "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0, format="$%.1f"),
                 "Reducción admin %": st.column_config.NumberColumn("Reducción administrativa", format="%.1f%%"),
-                "Lift contable $M": st.column_config.NumberColumn("Mejora contable", format="$%.1fM", help="Estimación del efecto contable del director, expresada en millones. No es beneficio directo."),
+                "Mejora contable $": st.column_config.NumberColumn("Mejora contable", format="$%.0f", help="Efecto estimado de Contabilidad sobre el umbral de cargos contables. No es beneficio directo."),
                 "Aumento ventas %": st.column_config.NumberColumn("Aumento de ventas", format="%.1f%%"),
                 "Patentes +pp": st.column_config.NumberColumn("Probabilidad de patente", format="%.1f%%"),
             },
-            key="directores_v27_editor",
+            key="directores_v28_editor",
         )
         aplicar_directores = st.form_submit_button("Aplicar directores", use_container_width=False)
 
@@ -507,7 +524,7 @@ with st.container(border=True):
 
     director_reduction_pct_total = float(active_directors["Reducción admin %"].sum()) if not active_directors.empty else 0.0
     director_sales_pct_total = float(active_directors["Aumento ventas %"].sum()) if not active_directors.empty else 0.0
-    director_accounting_lift_m = float(active_directors["Lift contable $M"].sum()) if not active_directors.empty else 0.0
+    director_accounting_effect = float(active_directors["Mejora contable $"].sum()) if not active_directors.empty else 0.0
     director_science_pct_total = float(active_directors["Patentes +pp"].sum()) if not active_directors.empty else 0.0
 
     director_reduction = max(0.0, min(0.95, director_reduction_pct_total / 100.0))
@@ -519,7 +536,7 @@ with st.container(border=True):
     d1.metric("Costo directores/día", money1(total_director_salary_day))
     d2.metric("Costo directores/h", money1(total_director_salary_h))
     d3.metric("Reducción administrativa", pct_plain(director_reduction_pct_total, 1))
-    d4.metric("Mejora contable", f"${director_accounting_lift_m:.1f}M".replace(".", ","))
+    d4.metric("Mejora contable", money(director_accounting_effect))
     d5.metric("Aumento de ventas", pct_plain(director_sales_pct_total, 1))
     d6.metric("Probabilidad de patente", pct_plain(director_science_pct_total, 1))
 

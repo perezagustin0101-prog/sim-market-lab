@@ -1,36 +1,33 @@
-Sim Market Lab V2.1 modular
+Sim Market Lab V2.2 modular
 ===========================
 
-Cambios principales respecto a V2:
+Cambios principales de V2.2:
 
-1. Configuración global corregida:
-   - Comisión de venta a mercado en porcentaje real: 4 = 4%.
-   - Descuento por contrato en porcentaje real: 3 = 3%.
-   - Se eliminó el multiplicador de salario.
-   - Se eliminó la reducción admin suelta.
-   - Se eliminó el transporte en contrato editable.
-   - El transporte por contrato queda fijo en 50% del transporte de mercado, como regla del juego.
+1) Separación base vs efectivo
+- productos_v1.csv y edificios_v1.csv deben guardar valores base puros del juego, sin bonus.
+- Las bonificaciones de cuenta/HQ y directores se cargan aparte.
+- La app muestra una tabla de control: Producción base/h vs Producción efectiva/h.
 
-2. Bonificadores del juego:
-   - Se reemplazó “multiplicador producción” por “Bono producción del juego (%)”.
-   - Se agregó “Bono venta retail del juego (%)” para preparar módulos de retail.
-   - Estos campos no representan una decisión inventada: son valores para copiar desde el juego.
+2) Bonificaciones de cuenta / HQ
+- Bonus producción cuenta/HQ (%) se carga como porcentaje real: 3 significa 3%.
+- Bonus venta retail cuenta/HQ (%) queda separado para retail.
+- La app muestra el multiplicador aplicado.
 
-3. Directores:
-   - Nuevo apartado para cargar directores.
-   - Campos: activo, nombre, puesto, Management, Accounting, Communication, Science, salario diario, reducción admin %, bono producción %, bono venta retail %.
-   - El salario diario de directores se convierte a costo por hora y se descuenta del beneficio real.
-   - La reducción admin y los bonos se cargan manualmente por ahora, hasta automatizar la fórmula exacta.
+3) Directores
+- Se mantienen directores con salario diario y efectos manuales.
+- El salario diario activo se descuenta por hora del beneficio.
+- La reducción admin y bonos de directores se suman a las bonificaciones globales.
 
-4. Fórmulas:
-   - El beneficio real ahora incluye costo de directores/hora.
-   - Los salarios de edificios ya no tienen multiplicador manual.
-   - El admin overhead sigue estimado por niveles y puede reducirse con el campo de directores.
+4) Costos y simulación
+- Los cálculos usan valores base del CSV y luego aplican bonus.
+- En ventas aparece Producción base/h y Producción efectiva/h.
+- Esto evita mezclar datos base con datos ya bonificados.
 
 Uso:
+1. Reemplazar app.py del repo por este app.py.
+2. Mantener productos_v1.csv, edificios_v1.csv, historial_mercado.csv y configuracion_v1.json en el repo.
+3. Ejecutar:
+   streamlit run app.py
 
-1. Reemplazá el app.py anterior por este app.py.
-2. Mantené tus CSV del repo: productos_v1.csv, edificios_v1.csv, historial_mercado.csv, configuracion_v1.json si existe.
-3. Ejecutá:
-
-streamlit run app.py
+Nota:
+Si la columna Producción base/h ya coincide con lo que el juego te muestra después de aplicar bonus, entonces el CSV está cargado con valores bonificados y hay que corregirlo para evitar doble conteo.

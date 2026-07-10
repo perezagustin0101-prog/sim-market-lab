@@ -1,13 +1,13 @@
-Sim Market Lab V2.6
+Sim Market Lab V2.8
 
 Cambios principales:
-- Directores ahora se editan dentro de un formulario con botón "Aplicar directores" para evitar que los datos se borren mientras escribís.
-- Si una fila de director tiene nombre, skills o salario, queda activa automáticamente.
-- Se agregaron rendimientos no editables calculados por fila:
-  Reducción admin %, Lift contable $M, Aumento ventas %, Patentes +pp.
-- Las métricas generales de directores ahora muestran solo información de directores:
-  costo/día, costo/h, reducción admin, lift contable, aumento ventas y patentes.
-- Se quitaron de esa zona los indicadores de bonus de producción y multiplicador aplicado.
+- Se eliminó la columna Perfil de Directores.
+- Ahora queda una sola columna Puesto: COO, CFO, CMO, CTO o Staff.
+- La búsqueda de “COO/CFO/CMO/CTO” se representa con los puntos del director: Gestión, Contabilidad, Comunicación y Ciencia.
+- Mejora contable ahora se muestra en dinero completo ($), no en $M, para evitar diferencias visuales como 0,3M arriba y 0,2M abajo.
+- La mejora contable NO es beneficio directo; representa el efecto estimado de Contabilidad sobre el umbral/cargo contable.
+- Se mantiene el cálculo cruzado por puesto: el puesto principal pesa completo y los demás aportan parcialmente. Es un modelo provisional hasta calibrarlo con lo que muestra el juego.
 
-Nota:
-Las fórmulas de directores están cargadas como modelo inicial editable/calibrable. La prioridad de esta versión es que la pantalla funcione estable y muestre efectos separados por director.
+Uso:
+Reemplazar app.py en el repo y correr:
+streamlit run app.py

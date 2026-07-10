@@ -1,18 +1,13 @@
-Sim Market Lab V2.5
+Sim Market Lab V2.6
 
-Cambios:
-- Directores ahora separa Perfil y Puesto asignado.
-- Perfil sirve para anotar qué tipo de director es o qué búsqueda hiciste.
-- Puesto asignado representa dónde está sentado en el Board: COO, CFO, CMO, CTO o Staff.
-- Se agregaron columnas no editables de rendimiento estimado:
-  - Reducción admin %
-  - Lift contable $M
-  - Aumento venta %
-  - Impacto ciencia %
-- Los efectos se calculan solo si el director está marcado como Activo.
-- Staff no aporta beneficios directos.
-- Los puestos principales aportan más al efecto asociado y los demás puestos aportan menos.
-- Las métricas de costo de directores siguen con un decimal.
+Cambios principales:
+- Directores ahora se editan dentro de un formulario con botón "Aplicar directores" para evitar que los datos se borren mientras escribís.
+- Si una fila de director tiene nombre, skills o salario, queda activa automáticamente.
+- Se agregaron rendimientos no editables calculados por fila:
+  Reducción admin %, Lift contable $M, Aumento ventas %, Patentes +pp.
+- Las métricas generales de directores ahora muestran solo información de directores:
+  costo/día, costo/h, reducción admin, lift contable, aumento ventas y patentes.
+- Se quitaron de esa zona los indicadores de bonus de producción y multiplicador aplicado.
 
 Nota:
-Las fórmulas de efecto de directores quedan como modelo provisional para visualización. Se deben calibrar contra los valores exactos que muestra el Board del juego cuando el usuario cargue casos reales.
+Las fórmulas de directores están cargadas como modelo inicial editable/calibrable. La prioridad de esta versión es que la pantalla funcione estable y muestre efectos separados por director.
