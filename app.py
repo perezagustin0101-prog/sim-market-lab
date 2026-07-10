@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2",
+    page_title="Sim Companies Business Simulator V2.1",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -153,6 +153,8 @@ REQ_MAP = {
 SOURCE_OPTIONS = ["Propia", "Mercado", "Contrato", "Mixta"]
 SALE_OPTIONS = ["Mercado", "Contrato", "Mejor automático"]
 PRICE_OPTIONS = ["Último", "Promedio", "Mínimo", "Máximo", "Manual/default"]
+CONTRACT_TRANSPORT_FACTOR = 0.50  # Regla del juego: contratos usan la mitad del transporte de mercado.
+
 
 # ============================================================
 # Carga de datos base
@@ -293,32 +295,117 @@ if "fuentes_insumos" not in st.session_state:
         {"Insumo": "Diésel", "Fuente": "Mercado", "% propio si Mixta": 0},
         {"Insumo": "Transporte", "Fuente": "Mercado", "% propio si Mixta": 0},
     ])
+if "directores" not in st.session_state:
+    st.session_state["directores"] = pd.DataFrame([
+        {"Activo": False, "Nombre": "", "Puesto": "COO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CFO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CMO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CTO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
+    ])
 
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2")
+st.title("Sim Companies Business Simulator V2.1.1")
 st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
     st.markdown('<div class="module-title">1. Configuración global</div>', unsafe_allow_html=True)
-    st.markdown('<div class="module-sub">Reglas generales del cálculo. No son decisiones: son supuestos editables.</div>', unsafe_allow_html=True)
-    c1, c2, c3, c4, c5 = st.columns(5)
+    st.markdown('<div class="module-sub">Reglas generales del cálculo. Los porcentajes se cargan como porcentaje real: 4 significa 4%, no 0,04.</div>', unsafe_allow_html=True)
+
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         price_mode = st.selectbox("Precio usado", PRICE_OPTIONS, index=0)
         analysis_hours = st.number_input("Horas simuladas", min_value=1, max_value=24*30, value=24, step=1)
     with c2:
-        market_fee = st.number_input("Comisión venta mercado", min_value=0.0, max_value=0.25, value=float(config_raw.get("comision_mercado", 0.03)), step=0.005, format="%.3f")
-        contract_discount = st.number_input("Descuento venta contrato", min_value=0.0, max_value=0.50, value=float(config_raw.get("descuento_contrato", 0.03)), step=0.005, format="%.3f")
+        market_fee_pct = st.number_input(
+            "Comisión venta mercado (%)",
+            min_value=0.0,
+            max_value=25.0,
+            value=float(config_raw.get("comision_mercado", 0.03)) * 100,
+            step=0.1,
+            format="%.2f",
+        )
+        contract_discount_pct = st.number_input(
+            "Descuento venta contrato (%)",
+            min_value=0.0,
+            max_value=50.0,
+            value=float(config_raw.get("descuento_contrato", 0.03)) * 100,
+            step=0.1,
+            format="%.2f",
+        )
     with c3:
         sale_mode = st.selectbox("Canal de venta", SALE_OPTIONS, index=0)
-        contract_transport_factor = st.number_input("Transporte en contrato", min_value=0.0, max_value=1.0, value=0.50, step=0.05, help="0.50 = se cobra la mitad del transporte respecto al mercado.")
-    with c4:
-        production_mult = st.number_input("Multiplicador producción", min_value=0.10, max_value=3.00, value=1.00, step=0.01)
-        salary_mult = st.number_input("Multiplicador salario", min_value=0.10, max_value=3.00, value=1.00, step=0.01)
-    with c5:
-        director_reduction = st.number_input("Reducción admin", min_value=0.0, max_value=0.95, value=float(config_raw.get("reduccion_admin_director", 0.0)), step=0.01)
         sell_surplus = st.checkbox("Vender excedentes", value=True)
+    with c4:
+        production_bonus_pct_manual = st.number_input(
+            "Bono producción del juego (%)",
+            min_value=-90.0,
+            max_value=300.0,
+            value=float(config_raw.get("bono_produccion_pct", 0.0)),
+            step=1.0,
+            format="%.2f",
+            help="No es un multiplicador inventado. Cargá acá el bono real que te muestra el juego por especialización/directores/boosts, si aplica.",
+        )
+        retail_bonus_pct_manual = st.number_input(
+            "Bono venta retail del juego (%)",
+            min_value=-90.0,
+            max_value=300.0,
+            value=float(config_raw.get("bono_venta_retail_pct", 0.0)),
+            step=1.0,
+            format="%.2f",
+            help="Queda cargado para módulos de retail. En esta versión no se aplica a producción normal.",
+        )
+
+    market_fee = market_fee_pct / 100.0
+    contract_discount = contract_discount_pct / 100.0
+
+    st.markdown("**Directores**")
+    st.caption("Cargá los directores tal como aparecen en el juego: puesto, puntos y salario diario. Los efectos exactos se pueden copiar manualmente en las columnas de reducción/bono hasta que automaticemos la fórmula completa.")
+    directores_df = st.data_editor(
+        st.session_state["directores"],
+        use_container_width=True,
+        hide_index=True,
+        num_rows="dynamic",
+        column_config={
+            "Activo": st.column_config.CheckboxColumn("Activo"),
+            "Puesto": st.column_config.SelectboxColumn("Puesto", options=["COO", "CFO", "CMO", "CTO", "Staff"]),
+            "Management": st.column_config.NumberColumn("Management", min_value=0, max_value=999, step=1),
+            "Accounting": st.column_config.NumberColumn("Accounting", min_value=0, max_value=999, step=1),
+            "Communication": st.column_config.NumberColumn("Communication", min_value=0, max_value=999, step=1),
+            "Science": st.column_config.NumberColumn("Science", min_value=0, max_value=999, step=1),
+            "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0),
+            "Reducción admin %": st.column_config.NumberColumn("Reducción admin %", min_value=0.0, max_value=95.0, step=0.1),
+            "Bono producción %": st.column_config.NumberColumn("Bono producción %", min_value=0.0, max_value=300.0, step=0.1),
+            "Bono venta retail %": st.column_config.NumberColumn("Bono venta retail %", min_value=0.0, max_value=300.0, step=0.1),
+        },
+        key="directores_v21_editor",
+    )
+    for col in ["Management", "Accounting", "Communication", "Science", "Salario diario", "Reducción admin %", "Bono producción %", "Bono venta retail %"]:
+        if col in directores_df.columns:
+            directores_df[col] = pd.to_numeric(directores_df[col], errors="coerce").fillna(0)
+    if "Activo" in directores_df.columns:
+        directores_df["Activo"] = directores_df["Activo"].astype(bool)
+    st.session_state["directores"] = directores_df.copy()
+
+    active_directors = directores_df[directores_df["Activo"]] if (not directores_df.empty and "Activo" in directores_df.columns) else pd.DataFrame()
+    total_director_salary_day = float(active_directors["Salario diario"].sum()) if not active_directors.empty else 0.0
+    total_director_salary_h = total_director_salary_day / 24.0
+    director_admin_reduction_pct = float(active_directors["Reducción admin %"].sum()) if not active_directors.empty else 0.0
+    director_production_bonus_pct = float(active_directors["Bono producción %"].sum()) if not active_directors.empty else 0.0
+    director_retail_bonus_pct = float(active_directors["Bono venta retail %"].sum()) if not active_directors.empty else 0.0
+
+    director_reduction = min(max(director_admin_reduction_pct / 100.0, 0.0), 0.95)
+    production_bonus_pct_total = production_bonus_pct_manual + director_production_bonus_pct
+    retail_bonus_pct_total = retail_bonus_pct_manual + director_retail_bonus_pct
+    production_mult = max(0.10, 1.0 + production_bonus_pct_total / 100.0)
+
+    d1, d2, d3, d4 = st.columns(4)
+    d1.metric("Costo directores/día", money(total_director_salary_day))
+    d2.metric("Costo directores/h", money(total_director_salary_h))
+    d3.metric("Reducción admin cargada", f"{director_admin_reduction_pct:.2f}%".replace(".", ","))
+    d4.metric("Bono producción total", f"{production_bonus_pct_total:.2f}%".replace(".", ","))
+    st.caption(f"Regla fija de contrato cargada: transporte = {CONTRACT_TRANSPORT_FACTOR*100:.0f}% del transporte de mercado. No es editable.")
 
 # Productos editables
 products = st.session_state["productos_editados"].copy()
@@ -545,7 +632,7 @@ def salary_per_level(edificio: str) -> float:
     br = get_building_row(buildings, edificio)
     if br.empty:
         return 0.0
-    return float(br.get("salario_h", 0) or 0) * salary_mult * (1 + admin_pct)
+    return float(br.get("salario_h", 0) or 0) * (1 + admin_pct)
 
 
 def product_building(producto: str, products: pd.DataFrame) -> str:
@@ -647,13 +734,13 @@ def net_sale_price(producto: str, unit_costs: Dict[str, dict], rows: List[dict])
     tr_need = float(pr.get("transporte_mercado", 0) or 0) if not pr.empty else 0.0
     tr_u = transport_unit_cost(rows, unit_costs, market_stats, fuente_df)
     market_net = price * (1 - market_fee) - tr_need * tr_u
-    contract_net = price * (1 - contract_discount) - tr_need * tr_u * contract_transport_factor
+    contract_net = price * (1 - contract_discount) - tr_need * tr_u * CONTRACT_TRANSPORT_FACTOR
     if sale_mode == "Mercado":
         return "Mercado", market_net, price, tr_need * tr_u
     if sale_mode == "Contrato":
-        return "Contrato", contract_net, price, tr_need * tr_u * contract_transport_factor
+        return "Contrato", contract_net, price, tr_need * tr_u * CONTRACT_TRANSPORT_FACTOR
     if contract_net > market_net:
-        return "Contrato", contract_net, price, tr_need * tr_u * contract_transport_factor
+        return "Contrato", contract_net, price, tr_need * tr_u * CONTRACT_TRANSPORT_FACTOR
     return "Mercado", market_net, price, tr_need * tr_u
 
 
@@ -733,7 +820,9 @@ def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, marke
             "Beneficio excedente/h": surplus_profit,
         })
 
-    total_profit_h += surplus_profit_h
+    fixed_director_cost_h = float(total_director_salary_h)
+    total_cost_h += fixed_director_cost_h
+    total_profit_h = total_profit_h + surplus_profit_h - fixed_director_cost_h
 
     # Capital base aproximado: costo_n1 * niveles. No es upgrade exacto, solo proxy.
     cap_base = 0.0
@@ -751,6 +840,7 @@ def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, marke
         "UnitCosts": unit_costs,
         "Ingreso neto/h": total_revenue_h,
         "Costo total/h": total_cost_h,
+        "Costo directores/h": fixed_director_cost_h,
         "Beneficio principal/h": total_revenue_h - total_cost_h,
         "Beneficio excedentes/h": surplus_profit_h,
         "Beneficio real/h": total_profit_h,
@@ -810,6 +900,7 @@ for r in results:
         "Variante": r["Variante"],
         "Ingreso neto/h": r["Ingreso neto/h"],
         "Costo total/h": r["Costo total/h"],
+        "Costo directores/h": r["Costo directores/h"],
         "Beneficio principal/h": r["Beneficio principal/h"],
         "Beneficio excedentes/h": r["Beneficio excedentes/h"],
         "Beneficio real/h": r["Beneficio real/h"],
@@ -828,7 +919,7 @@ with st.container(border=True):
     k2.metric(f"Beneficio {int(analysis_hours)}h", money(best["Beneficio simulado"]))
     k3.metric("Ingreso neto/h", money(best["Ingreso neto/h"]))
     k4.metric("Costo total/h", money(best["Costo total/h"]))
-    formatted_summary = fmt_df_money(summary_df, ["Ingreso neto/h", "Costo total/h", "Beneficio principal/h", "Beneficio excedentes/h", "Beneficio real/h", f"Beneficio {int(analysis_hours)}h", "Capital base aprox", "ROI horas aprox"])
+    formatted_summary = fmt_df_money(summary_df, ["Ingreso neto/h", "Costo total/h", "Costo directores/h", "Beneficio principal/h", "Beneficio excedentes/h", "Beneficio real/h", f"Beneficio {int(analysis_hours)}h", "Capital base aprox", "ROI horas aprox"])
     st.dataframe(formatted_summary, hide_index=True, use_container_width=True, height=min(520, 120 + len(formatted_summary) * 35))
 
 with st.container(border=True):
@@ -918,6 +1009,6 @@ with st.container(border=True):
         st.info("No hay escenarios comparables.")
 
 st.caption(
-    "V2 modular: configuración global · escenarios · edificios · recetas · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
+    "V2.1 modular: configuración global · escenarios · edificios · recetas · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
     "El capital base aproximado usa costo N1 × niveles como proxy; los upgrades exactos quedan para una versión posterior."
 )
