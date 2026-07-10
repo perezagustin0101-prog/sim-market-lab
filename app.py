@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2.8",
+    page_title="Sim Companies Business Simulator V2.9",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -102,6 +102,12 @@ def safe_div(a: float, b: float) -> float:
         return float(a) / b
     except Exception:
         return 0.0
+
+
+def safe_rerun() -> None:
+    rerun_fn = getattr(st, "rerun", None) or getattr(st, "experimental_rerun", None)
+    if rerun_fn is not None:
+        rerun_fn()
 
 
 @st.cache_data(show_spinner=False)
@@ -433,7 +439,7 @@ st.session_state["directores"] = add_director_effects(st.session_state["director
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.8")
+st.title("Sim Companies Business Simulator V2.9")
 st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
@@ -487,34 +493,32 @@ with st.container(border=True):
 
     st.markdown("**Directores**")
     directores_base = add_director_effects(st.session_state["directores"]).copy()
+    editor_cols = DIRECTOR_INPUT_COLUMNS
+    directores_inputs = directores_base[editor_cols].copy()
 
-    with st.form("form_directores_v28", clear_on_submit=False):
+    with st.form("form_directores_v29", clear_on_submit=False):
         directores_editados = st.data_editor(
-            directores_base,
+            directores_inputs,
             use_container_width=True,
             hide_index=True,
-            num_rows="dynamic",
-            disabled=DIRECTOR_EFFECT_COLUMNS,
+            num_rows="fixed",
             column_config={
                 "Activo": st.column_config.CheckboxColumn("Activo"),
+                "Nombre": st.column_config.TextColumn("Nombre"),
                 "Puesto": st.column_config.SelectboxColumn("Puesto", options=DIRECTOR_ROLE_OPTIONS),
                 "Management": st.column_config.NumberColumn("Gestión", min_value=0, max_value=999, step=1),
                 "Accounting": st.column_config.NumberColumn("Contabilidad", min_value=0, max_value=999, step=1),
                 "Communication": st.column_config.NumberColumn("Comunicación", min_value=0, max_value=999, step=1),
                 "Science": st.column_config.NumberColumn("Ciencia", min_value=0, max_value=999, step=1),
                 "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0, format="$%.1f"),
-                "Reducción admin %": st.column_config.NumberColumn("Reducción administrativa", format="%.1f%%"),
-                "Mejora contable $": st.column_config.NumberColumn("Mejora contable", format="$%.0f", help="Efecto estimado de Contabilidad sobre el umbral de cargos contables. No es beneficio directo."),
-                "Aumento ventas %": st.column_config.NumberColumn("Aumento de ventas", format="%.1f%%"),
-                "Patentes +pp": st.column_config.NumberColumn("Probabilidad de patente", format="%.1f%%"),
             },
-            key="directores_v28_editor",
+            key="directores_v29_editor",
         )
         aplicar_directores = st.form_submit_button("Aplicar directores", use_container_width=False)
 
     if aplicar_directores:
         st.session_state["directores"] = add_director_effects(directores_editados).copy()
-        st.rerun()
+        safe_rerun()
 
     directores_df = add_director_effects(st.session_state["directores"]).copy()
 
@@ -526,6 +530,24 @@ with st.container(border=True):
     director_sales_pct_total = float(active_directors["Aumento ventas %"].sum()) if not active_directors.empty else 0.0
     director_accounting_effect = float(active_directors["Mejora contable $"].sum()) if not active_directors.empty else 0.0
     director_science_pct_total = float(active_directors["Patentes +pp"].sum()) if not active_directors.empty else 0.0
+
+    # Tabla de resultados separada del editor: evita errores de Streamlit con columnas calculadas/formateadas.
+    rendimiento_directores = directores_df[[
+        "Activo", "Nombre", "Puesto", "Reducción admin %", "Mejora contable $", "Aumento ventas %", "Patentes +pp"
+    ]].copy()
+    rendimiento_directores = rendimiento_directores.rename(columns={
+        "Reducción admin %": "Reducción administrativa",
+        "Mejora contable $": "Mejora contable",
+        "Aumento ventas %": "Aumento de ventas",
+        "Patentes +pp": "Probabilidad de patente",
+    })
+    rendimiento_directores["Reducción administrativa"] = rendimiento_directores["Reducción administrativa"].map(lambda v: pct_plain(v, 1))
+    rendimiento_directores["Mejora contable"] = rendimiento_directores["Mejora contable"].map(money)
+    rendimiento_directores["Aumento de ventas"] = rendimiento_directores["Aumento de ventas"].map(lambda v: pct_plain(v, 1))
+    rendimiento_directores["Probabilidad de patente"] = rendimiento_directores["Probabilidad de patente"].map(lambda v: pct_plain(v, 1))
+
+    with st.expander("Ver rendimiento estimado por director", expanded=False):
+        st.dataframe(rendimiento_directores, hide_index=True, use_container_width=True)
 
     director_reduction = max(0.0, min(0.95, director_reduction_pct_total / 100.0))
     production_bonus_pct_total = production_bonus_pct_manual
@@ -571,7 +593,7 @@ with st.container(border=True):
             st.session_state["scenarios"][new_name] = json.loads(json.dumps(base))
             st.session_state["scenarios"][new_name]["tipo"] = "Simulada"
             st.session_state["scenario_name"] = new_name
-            st.rerun()
+            safe_rerun()
     with c:
         if st.button("Nuevo vacío", use_container_width=True):
             new_name = "Empresa nueva"
@@ -587,12 +609,12 @@ with st.container(border=True):
                 "rows": [],
             }
             st.session_state["scenario_name"] = new_name
-            st.rerun()
+            safe_rerun()
     with d:
         if st.button("Reset V2", use_container_width=True):
             st.session_state["scenarios"] = default_scenarios()
             st.session_state["scenario_name"] = "Mi empresa actual"
-            st.rerun()
+            safe_rerun()
 
     scenario = st.session_state["scenarios"][st.session_state["scenario_name"]]
     m1, m2, m3, m4 = st.columns(4)
