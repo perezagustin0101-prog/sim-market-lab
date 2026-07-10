@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2.1",
+    page_title="Sim Companies Business Simulator V2.2",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -306,8 +306,8 @@ if "directores" not in st.session_state:
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.1.1")
-st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
+st.title("Sim Companies Business Simulator V2.2.1")
+st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real. V2.2 separa datos base del juego y bonificaciones.")
 
 with st.container(border=True):
     st.markdown('<div class="module-title">1. Configuración global</div>', unsafe_allow_html=True)
@@ -338,27 +338,30 @@ with st.container(border=True):
         sale_mode = st.selectbox("Canal de venta", SALE_OPTIONS, index=0)
         sell_surplus = st.checkbox("Vender excedentes", value=True)
     with c4:
+        st.markdown("**Bonificaciones de cuenta / HQ**")
         production_bonus_pct_manual = st.number_input(
-            "Bono producción del juego (%)",
+            "Bonus producción cuenta/HQ (%)",
             min_value=-90.0,
             max_value=300.0,
             value=float(config_raw.get("bono_produccion_pct", 0.0)),
             step=1.0,
             format="%.2f",
-            help="No es un multiplicador inventado. Cargá acá el bono real que te muestra el juego por especialización/directores/boosts, si aplica.",
+            help="Cargá solo el extra de tu cuenta/HQ. Los datos base salen de productos_v1.csv y no deben tener bonos incluidos.",
         )
         retail_bonus_pct_manual = st.number_input(
-            "Bono venta retail del juego (%)",
+            "Bonus venta retail cuenta/HQ (%)",
             min_value=-90.0,
             max_value=300.0,
             value=float(config_raw.get("bono_venta_retail_pct", 0.0)),
             step=1.0,
             format="%.2f",
-            help="Queda cargado para módulos de retail. En esta versión no se aplica a producción normal.",
+            help="Cargá solo el extra de venta retail de tu cuenta/HQ. No modifica producción normal.",
         )
 
     market_fee = market_fee_pct / 100.0
     contract_discount = contract_discount_pct / 100.0
+
+    st.caption("Regla de carga: productos_v1.csv y edificios_v1.csv guardan valores BASE sin bonus. Las bonificaciones se cargan aparte y se aplican arriba de esos valores.")
 
     st.markdown("**Directores**")
     st.caption("Cargá los directores tal como aparecen en el juego: puesto, puntos y salario diario. Los efectos exactos se pueden copiar manualmente en las columnas de reducción/bono hasta que automaticemos la fórmula completa.")
@@ -400,11 +403,12 @@ with st.container(border=True):
     retail_bonus_pct_total = retail_bonus_pct_manual + director_retail_bonus_pct
     production_mult = max(0.10, 1.0 + production_bonus_pct_total / 100.0)
 
-    d1, d2, d3, d4 = st.columns(4)
+    d1, d2, d3, d4, d5 = st.columns(5)
     d1.metric("Costo directores/día", money(total_director_salary_day))
     d2.metric("Costo directores/h", money(total_director_salary_h))
     d3.metric("Reducción admin cargada", f"{director_admin_reduction_pct:.2f}%".replace(".", ","))
-    d4.metric("Bono producción total", f"{production_bonus_pct_total:.2f}%".replace(".", ","))
+    d4.metric("Bonus producción total", f"{production_bonus_pct_total:.2f}%".replace(".", ","))
+    d5.metric("Multiplicador aplicado", f"x{production_mult:.4f}".replace(".", ","))
     st.caption(f"Regla fija de contrato cargada: transporte = {CONTRACT_TRANSPORT_FACTOR*100:.0f}% del transporte de mercado. No es editable.")
 
 # Productos editables
@@ -518,8 +522,64 @@ with st.container(border=True):
 # ============================================================
 with st.container(border=True):
     st.markdown('<div class="module-title">4. Productos / recetas</div>', unsafe_allow_html=True)
-    st.markdown('<div class="module-sub">Base editable de producción y requisitos. Acá se corrigen fórmulas si el juego cambia o si hay datos mal cargados.</div>', unsafe_allow_html=True)
-    with st.expander("Ver / editar recetas y requisitos", expanded=False):
+    st.markdown('<div class="module-sub">Base editable de producción y requisitos. Estos valores deben ser BASE, sin bonos de cuenta, HQ ni directores. La app muestra base vs efectivo para detectar doble conteo.</div>', unsafe_allow_html=True)
+
+    # Vista rápida: valores base del CSV vs valores efectivos con bonos aplicados
+    preview_rows = []
+    try:
+        scen_df = pd.DataFrame(scenario.get("rows", []))
+        if not scen_df.empty:
+            scen_df["Activo"] = scen_df.get("Activo", True).astype(bool)
+            scen_df["Nivel total"] = pd.to_numeric(scen_df.get("Nivel total", 0), errors="coerce").fillna(0)
+            scen_df = scen_df[(scen_df["Activo"]) & (scen_df["Nivel total"] > 0)]
+            for _, rr in scen_df.iterrows():
+                edificio_sel = str(rr.get("Edificio", ""))
+                prod_sel = str(rr.get("Producto", ""))
+                niveles = float(rr.get("Nivel total", 0) or 0)
+                if prod_sel == "Simular opciones":
+                    prod_rows = products[(products["edificio"] == edificio_sel) & (products["produccion_h"] > 0)].copy()
+                else:
+                    prod_rows = products[products["producto"] == prod_sel].copy()
+                for _, prr in prod_rows.iterrows():
+                    prod_base = niveles * float(prr.get("produccion_h", 0) or 0)
+                    agua_base = niveles * float(prr.get("agua_necesaria_h", 0) or 0)
+                    semillas_base = niveles * float(prr.get("semillas_necesarias_h", 0) or 0)
+                    electricidad_base = niveles * float(prr.get("electricidad_necesaria_h", 0) or 0)
+                    preview_rows.append({
+                        "Edificio": edificio_sel,
+                        "Producto": prr.get("producto", ""),
+                        "Niveles": int(niveles),
+                        "Producción base/h": prod_base,
+                        "Producción efectiva/h": prod_base * production_mult,
+                        "Agua base/h": agua_base,
+                        "Agua efectiva/h": agua_base * production_mult,
+                        "Semillas base/h": semillas_base,
+                        "Semillas efectiva/h": semillas_base * production_mult,
+                        "Electricidad base/h": electricidad_base,
+                        "Electricidad efectiva/h": electricidad_base * production_mult,
+                    })
+    except Exception:
+        preview_rows = []
+
+    if preview_rows:
+        st.markdown("**Control base vs efectivo**")
+        st.caption("Si Producción base/h ya coincide con lo que te muestra el juego con bonus, entonces el CSV está bonificado y habría doble conteo. La columna efectiva es base × bonus total.")
+        st.dataframe(
+            pd.DataFrame(preview_rows).head(80).style.format({
+                "Producción base/h": "{:.2f}",
+                "Producción efectiva/h": "{:.2f}",
+                "Agua base/h": "{:.2f}",
+                "Agua efectiva/h": "{:.2f}",
+                "Semillas base/h": "{:.2f}",
+                "Semillas efectiva/h": "{:.2f}",
+                "Electricidad base/h": "{:.2f}",
+                "Electricidad efectiva/h": "{:.2f}",
+            }),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+    with st.expander("Ver / editar recetas y requisitos BASE", expanded=False):
         editable_cols = [
             "kind", "producto", "edificio", "produccion_h", "agua_necesaria_h", "semillas_necesarias_h",
             "electricidad_necesaria_h", "diesel_necesario_h", "transporte_mercado", "precio_default", "costo_manual"
@@ -756,7 +816,8 @@ def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, marke
         if pr.empty:
             continue
         levels = float(r.get("Nivel total", 0) or 0)
-        qty = levels * float(pr.get("produccion_h", 0) or 0) * production_mult
+        qty_base = levels * float(pr.get("produccion_h", 0) or 0)
+        qty = qty_base * production_mult
         outputs[prod_name] = outputs.get(prod_name, 0.0) + qty
         for input_name, col in REQ_MAP.items():
             needs[input_name] = needs.get(input_name, 0.0) + levels * float(pr.get(col, 0) or 0) * production_mult
@@ -774,7 +835,8 @@ def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, marke
         if pr.empty:
             continue
         levels = float(r.get("Nivel total", 0) or 0)
-        qty = levels * float(pr.get("produccion_h", 0) or 0) * production_mult
+        qty_base = levels * float(pr.get("produccion_h", 0) or 0)
+        qty = qty_base * production_mult
         channel, net_u, gross_u, transport_cost_u = net_sale_price(prod_name, unit_costs, rows)
         cost_u = float(unit_costs.get(prod_name, {}).get("Costo/u", market_buy_price(prod_name, market_stats)))
         revenue_h = qty * net_u
@@ -786,7 +848,8 @@ def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, marke
         sell_rows.append({
             "Producto": prod_name,
             "Nivel total": int(levels),
-            "Producción/h": qty,
+            "Producción base/h": qty_base,
+            "Producción efectiva/h": qty,
             "Canal": channel,
             "Precio bruto/u": gross_u,
             "Transporte/u": transport_cost_u,
@@ -1009,6 +1072,6 @@ with st.container(border=True):
         st.info("No hay escenarios comparables.")
 
 st.caption(
-    "V2.1 modular: configuración global · escenarios · edificios · recetas · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
+    "V2.2 modular: configuración global · escenarios · edificios · recetas base vs efectivo · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
     "El capital base aproximado usa costo N1 × niveles como proxy; los upgrades exactos quedan para una versión posterior."
 )
