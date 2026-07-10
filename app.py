@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import csv
+import itertools
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 import pandas as pd
 import streamlit as st
@@ -12,99 +13,74 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Market Lab — Slots reales",
-    page_icon="🏭",
+    page_title="Sim Companies Business Simulator V2",
+    page_icon="📊",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# =============================
-# Estilo visual
-# =============================
+# ============================================================
+# Estilo
+# ============================================================
 st.markdown(
     """
     <style>
-    .stApp {
-        background: radial-gradient(circle at top left, #17213a 0, #0b1020 42%, #070a10 100%);
-        color: #eef3ff;
-    }
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #111827 0%, #090d16 100%);
-        border-right: 1px solid rgba(255,255,255,0.09);
-    }
-    .title {
-        font-size: 2.4rem;
-        line-height: 1.05;
-        font-weight: 950;
-        letter-spacing: -0.05em;
-        margin-bottom: 0.1rem;
-    }
-    .subtitle { color: #aab7d4; font-size: 1.02rem; margin-bottom: 1.1rem; }
-    .hero {
-        background: linear-gradient(135deg, rgba(55, 111, 255, 0.18), rgba(30, 207, 129, 0.10));
-        border: 1px solid rgba(255,255,255,0.11);
-        border-radius: 26px;
-        padding: 22px 24px;
-        box-shadow: 0 22px 50px rgba(0,0,0,0.28);
-        margin-bottom: 18px;
-    }
-    .card {
-        background: rgba(255,255,255,0.065);
-        border: 1px solid rgba(255,255,255,0.10);
-        border-radius: 22px;
-        padding: 17px 18px;
-        min-height: 112px;
-        box-shadow: 0 18px 42px rgba(0,0,0,0.23);
-    }
-    .card h3 { color:#aab7d4; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; margin:0 0 8px 0; }
-    .big { font-size:1.85rem; font-weight:950; color:white; margin:0; }
-    .small { color:#b8c4dc; font-size:.93rem; }
-    .good { color:#59e68b !important; }
-    .warn { color:#ffd166 !important; }
-    .bad { color:#ff6b6b !important; }
-    .muted { color:#aab7d4 !important; }
-    .pill {
-        display:inline-block; border-radius:999px; padding:6px 11px; margin:4px 5px 4px 0;
-        font-size:.80rem; font-weight:850; border:1px solid rgba(255,255,255,.14); background:rgba(255,255,255,.07);
-    }
-    .pill-good { background: rgba(89,230,139,.15); color:#59e68b; border-color: rgba(89,230,139,.32); }
-    .pill-warn { background: rgba(255,209,102,.16); color:#ffd166; border-color: rgba(255,209,102,.32); }
-    .pill-blue { background: rgba(91,141,255,.17); color:#8eb0ff; border-color: rgba(91,141,255,.32); }
-    div[data-testid="stMetric"] { background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.10); padding:14px 16px; border-radius:18px; }
-    .stDataFrame { border-radius:18px; overflow:hidden; }
+    .block-container {padding-top: 1.1rem; padding-bottom: 2rem;}
+    div[data-testid="stMetric"] {background: rgba(250,250,250,.04); border: 1px solid rgba(128,128,128,.22); padding: .8rem; border-radius: .9rem;}
+    .module-title {font-size: 1.15rem; font-weight: 800; margin: .35rem 0 .35rem 0;}
+    .module-sub {font-size: .88rem; color: #8a8f98; margin-bottom: .65rem;}
+    .soft-card {border: 1px solid rgba(128,128,128,.25); border-radius: 1rem; padding: 1rem; margin-bottom: .75rem;}
+    .small-note {font-size: .82rem; color: #8a8f98;}
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# =============================
-# Utilidades
-# =============================
-def money(x) -> str:
+# ============================================================
+# Helpers
+# ============================================================
+def money(x: Any) -> str:
     if x is None or pd.isna(x):
         return "—"
-    x = float(x)
-    if abs(x) >= 1000:
-        return f"${x:,.0f}".replace(",", ".")
-    if abs(x) >= 10:
-        return f"${x:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
-    return f"${x:,.3f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    try:
+        x = float(x)
+    except Exception:
+        return "—"
+    sign = "-" if x < 0 else ""
+    x = abs(x)
+    if x >= 1000:
+        return sign + f"${x:,.0f}".replace(",", ".")
+    if x >= 10:
+        return sign + f"${x:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    return sign + f"${x:,.3f}".replace(",", "_").replace(".", ",").replace("_", ".")
 
 
-def num(x, dec=1) -> str:
+def num(x: Any, dec: int = 1) -> str:
     if x is None or pd.isna(x):
         return "—"
-    return f"{float(x):,.{dec}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    try:
+        return f"{float(x):,.{dec}f}".replace(",", "_").replace(".", ",").replace("_", ".")
+    except Exception:
+        return "—"
 
 
-def pct(x) -> str:
+def pct(x: Any) -> str:
     if x is None or pd.isna(x):
         return "—"
-    return f"{float(x)*100:.1f}%".replace(".", ",")
+    try:
+        return f"{float(x)*100:.1f}%".replace(".", ",")
+    except Exception:
+        return "—"
 
 
 def safe_div(a: float, b: float) -> float:
-    return 0.0 if abs(float(b)) < 1e-12 else float(a) / float(b)
+    try:
+        b = float(b)
+        if abs(b) < 1e-12:
+            return 0.0
+        return float(a) / b
+    except Exception:
+        return 0.0
 
 
 @st.cache_data(show_spinner=False)
@@ -125,9 +101,17 @@ def load_json(name: str) -> dict:
 
 @st.cache_data(show_spinner=False)
 def parse_market_history() -> pd.DataFrame:
-    path = ROOT / "historial_mercado.csv"
-    if not path.exists():
+    """Soporta historial_mercado.csv viejo o nuevo.
+
+    Formato esperado mínimo:
+    fecha/kind/quality/price o variantes generadas por collector.py.
+    """
+    for path in [ROOT / "historial_mercado.csv", DATA / "historial_mercado.csv", ROOT / "market_ticks.csv", DATA / "market_ticks.csv"]:
+        if path.exists():
+            break
+    else:
         return pd.DataFrame(columns=["fecha", "kind", "quality", "price"])
+
     rows = []
     try:
         with path.open("r", encoding="utf-8-sig", newline="") as f:
@@ -135,15 +119,18 @@ def parse_market_history() -> pd.DataFrame:
             for row in reader:
                 if not row:
                     continue
-                if row[0].strip().lower() in {"collected_at_utc", "recopilado_en_utc"}:
+                first = str(row[0]).strip().lower()
+                if first in {"collected_at_utc", "recopilado_en_utc", "fecha", "timestamp"}:
                     continue
-                # Soporta historial viejo de profundidad y ticker nuevo.
+                # Variante vieja: fecha, kind, ... quality, price
                 if len(row) >= 8 and not str(row[2]).replace(".", "", 1).isdigit():
                     rows.append([row[0], row[1], row[3], row[4]])
+                # Variante simple: fecha, kind, quality, price
                 elif len(row) >= 4:
                     rows.append([row[0], row[1], row[2], row[3]])
     except Exception:
         return pd.DataFrame(columns=["fecha", "kind", "quality", "price"])
+
     df = pd.DataFrame(rows, columns=["fecha", "kind", "quality", "price"])
     if df.empty:
         return df
@@ -156,485 +143,781 @@ def parse_market_history() -> pd.DataFrame:
     return df.sort_values("fecha")
 
 
-products = load_csv("productos_v1.csv")
-buildings = load_csv("edificios_v1.csv")
-config = load_json("configuracion_v1.json")
+REQ_MAP = {
+    "Electricidad": "electricidad_necesaria_h",
+    "Agua": "agua_necesaria_h",
+    "Semillas": "semillas_necesarias_h",
+    "Diésel": "diesel_necesario_h",
+}
+
+SOURCE_OPTIONS = ["Propia", "Mercado", "Contrato", "Mixta"]
+SALE_OPTIONS = ["Mercado", "Contrato", "Mejor automático"]
+PRICE_OPTIONS = ["Último", "Promedio", "Mínimo", "Máximo", "Manual/default"]
+
+# ============================================================
+# Carga de datos base
+# ============================================================
+products_raw = load_csv("productos_v1.csv")
+buildings_raw = load_csv("edificios_v1.csv")
+config_raw = load_json("configuracion_v1.json")
 hist = parse_market_history()
 
-if products.empty or buildings.empty:
-    st.error("Faltan productos_v1.csv o edificios_v1.csv. Subilos al repo junto con app.py.")
+if products_raw.empty or buildings_raw.empty:
+    st.error("Faltan productos_v1.csv o edificios_v1.csv en la carpeta raíz del repo.")
     st.stop()
 
-name_by_kind = dict(zip(products["kind"], products["producto"]))
-latest_prices: Dict[str, float] = {}
-if not hist.empty:
-    latest = hist[hist["quality"] == 0].sort_values("fecha").groupby("kind", as_index=False).tail(1)
-    for _, r in latest.iterrows():
-        name = name_by_kind.get(int(r["kind"]))
-        if name:
-            latest_prices[name] = float(r["price"])
-for _, r in products.iterrows():
-    latest_prices.setdefault(str(r["producto"]), float(r.get("precio_default", 0) or 0))
+# Normalización defensiva
+for col in ["kind", "produccion_h", "agua_necesaria_h", "semillas_necesarias_h", "electricidad_necesaria_h", "diesel_necesario_h", "transporte_mercado", "precio_default", "costo_manual"]:
+    if col in products_raw.columns:
+        products_raw[col] = pd.to_numeric(products_raw[col], errors="coerce").fillna(0)
+for col in ["salario_h", "produccion_h", "electricidad_necesaria_h", "valor_referencia_n1", "costo_n1", "tiempo_n1_h"]:
+    if col in buildings_raw.columns:
+        buildings_raw[col] = pd.to_numeric(buildings_raw[col], errors="coerce").fillna(0)
+
+# Estado editable de productos/recetas
+if "productos_editados" not in st.session_state:
+    st.session_state["productos_editados"] = products_raw.copy()
+
+# ============================================================
+# Market stats
+# ============================================================
+def build_market_stats(products: pd.DataFrame, history: pd.DataFrame) -> pd.DataFrame:
+    base = products[["kind", "producto", "precio_default"]].copy()
+    base["kind"] = base["kind"].astype(int)
+    if history.empty:
+        out = base.copy()
+        out["Último"] = out["precio_default"]
+        out["Mínimo"] = out["precio_default"]
+        out["Promedio"] = out["precio_default"]
+        out["Máximo"] = out["precio_default"]
+        out["Puntos"] = 0
+        return out[["producto", "Último", "Mínimo", "Promedio", "Máximo", "Puntos", "precio_default"]]
+
+    h0 = history[history["quality"] == 0].copy()
+    if h0.empty:
+        h0 = history.copy()
+    agg = h0.groupby("kind").agg(
+        Último=("price", lambda s: s.iloc[-1]),
+        Mínimo=("price", "min"),
+        Promedio=("price", "mean"),
+        Máximo=("price", "max"),
+        Puntos=("price", "count"),
+    ).reset_index()
+    out = base.merge(agg, on="kind", how="left")
+    for col in ["Último", "Mínimo", "Promedio", "Máximo"]:
+        out[col] = out[col].fillna(out["precio_default"])
+    out["Puntos"] = out["Puntos"].fillna(0).astype(int)
+    return out[["producto", "Último", "Mínimo", "Promedio", "Máximo", "Puntos", "precio_default"]]
 
 
-def get_building(name: str) -> pd.Series:
-    m = buildings[buildings["edificio"] == name]
-    return m.iloc[0] if not m.empty else pd.Series(dtype="object")
+def fmt_df_money(df: pd.DataFrame, cols: List[str]) -> pd.DataFrame:
+    out = df.copy()
+    for c in cols:
+        if c in out.columns:
+            out[c] = out[c].map(money)
+    return out
 
 
-def get_product(name: str) -> pd.Series:
-    m = products[products["producto"] == name]
-    return m.iloc[0] if not m.empty else pd.Series(dtype="object")
+def get_building_row(buildings: pd.DataFrame, edificio: str) -> pd.Series:
+    m = buildings[buildings["edificio"] == edificio]
+    if m.empty:
+        return pd.Series(dtype="object")
+    return m.iloc[0]
 
 
-central = get_building("Central eléctrica")
-embalse = get_building("Embalse de agua")
-granja = get_building("Granja")
-deposito = get_building("Depósito de Embarque")
-seed_product = get_product("Semillas")
-farm_crops = products[(products["edificio"] == "Granja") & (products["producto"] != "Semillas")]["producto"].tolist()
-
-# =============================
-# Estado inicial de slots
-# =============================
-def default_slot(i: int) -> dict:
-    if i == 1:
-        return {"tipo": "Central eléctrica", "nivel": 1, "rol": "Soporte"}
-    if i == 2:
-        return {"tipo": "Embalse de agua", "nivel": 1, "rol": "Soporte"}
-    if i == 3:
-        return {"tipo": "Granja", "nivel": 1, "rol": "Semillera"}
-    if i in (4, 5, 6):
-        return {"tipo": "Granja", "nivel": 1, "rol": "Venta"}
-    return {"tipo": "Vacío", "nivel": 1, "rol": "Vacío"}
+def get_product_row(products: pd.DataFrame, producto: str) -> pd.Series:
+    m = products[products["producto"] == producto]
+    if m.empty:
+        return pd.Series(dtype="object")
+    return m.iloc[0]
 
 
-if "slots_desbloqueados" not in st.session_state:
-    st.session_state["slots_desbloqueados"] = 7
-if "slots" not in st.session_state:
-    st.session_state["slots"] = [default_slot(i) for i in range(1, st.session_state["slots_desbloqueados"] + 1)]
+def price_of(producto: str, market_stats: pd.DataFrame, mode: str) -> float:
+    row = market_stats[market_stats["producto"] == producto]
+    if row.empty:
+        return 0.0
+    r = row.iloc[0]
+    key = mode if mode in ["Último", "Promedio", "Mínimo", "Máximo"] else "precio_default"
+    return float(r.get(key, 0) or 0)
 
-# =============================
-# Sidebar: configuración simple por slot
-# =============================
-st.sidebar.markdown("# 🧱 Slots reales")
-st.sidebar.caption("Cada slot es un edificio separado. El nivel se carga en ese slot, no como promedio.")
-
-b1, b2 = st.sidebar.columns(2)
-if b1.button("+ Desbloquear slot", use_container_width=True):
-    st.session_state["slots_desbloqueados"] += 1
-    st.session_state["slots"].append(default_slot(st.session_state["slots_desbloqueados"]))
-if b2.button("↺ Reset actual", use_container_width=True):
-    st.session_state["slots_desbloqueados"] = 7
-    st.session_state["slots"] = [default_slot(i) for i in range(1, 8)]
-
-slot_count = st.sidebar.number_input(
-    "Slots desbloqueados",
-    min_value=1,
-    max_value=30,
-    value=int(st.session_state["slots_desbloqueados"]),
-    step=1,
-)
-if slot_count != st.session_state["slots_desbloqueados"]:
-    old = st.session_state["slots_desbloqueados"]
-    st.session_state["slots_desbloqueados"] = int(slot_count)
-    if slot_count > old:
-        for i in range(old + 1, int(slot_count) + 1):
-            st.session_state["slots"].append(default_slot(i))
-    else:
-        st.session_state["slots"] = st.session_state["slots"][: int(slot_count)]
-    st.rerun()
-
-st.sidebar.markdown("### Qué hay en cada slot")
-slot_options = ["Vacío", "Central eléctrica", "Embalse de agua", "Granja", "Depósito de Embarque"]
-role_options = ["Semillera", "Venta"]
-
-for idx in range(st.session_state["slots_desbloqueados"]):
-    slot = st.session_state["slots"][idx]
-    with st.sidebar.expander(f"Slot {idx+1}: {slot.get('tipo', 'Vacío')}" + (f" N{slot.get('nivel', 1)}" if slot.get("tipo") != "Vacío" else ""), expanded=(idx < 7)):
-        tipo_actual = slot.get("tipo", "Vacío")
-        tipo = st.selectbox(
-            "Edificio",
-            slot_options,
-            index=slot_options.index(tipo_actual) if tipo_actual in slot_options else 0,
-            key=f"slot_{idx}_tipo",
-        )
-        slot["tipo"] = tipo
-        if tipo == "Vacío":
-            slot["nivel"] = 1
-            slot["rol"] = "Vacío"
-            st.caption("Este slot está libre. Cuando construyas algo, elegilo acá.")
-        else:
-            slot["nivel"] = int(st.number_input("Nivel de ESTE edificio", min_value=1, max_value=20, value=int(slot.get("nivel", 1)), step=1, key=f"slot_{idx}_nivel"))
-            if tipo == "Granja":
-                rol_actual = slot.get("rol", "Venta")
-                if rol_actual not in role_options:
-                    rol_actual = "Venta"
-                slot["rol"] = st.radio("Uso de ESTA granja", role_options, index=role_options.index(rol_actual), horizontal=True, key=f"slot_{idx}_rol")
-            else:
-                slot["rol"] = "Soporte"
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Venta y cálculo")
-product_mode = st.sidebar.radio("Producto de las granjas de venta", ["Automático", "Elegir yo"], index=0)
-manual_crop = st.sidebar.selectbox("Producto elegido", farm_crops, index=farm_crops.index("Grano") if "Grano" in farm_crops else 0, disabled=(product_mode == "Automático"))
-sale_mode = st.sidebar.radio("Canal de venta", ["Mercado", "Contrato", "Mejor automático"], index=0)
-sell_surplus = st.sidebar.checkbox("Vender excedentes en mercado", value=True)
-
-st.sidebar.markdown("### Fase y ajustes")
-fase = st.sidebar.selectbox("Fase económica", ["Recesión", "Normal", "Boom"], index=1)
-with st.sidebar.expander("Ajustes avanzados", expanded=False):
-    production_mult = st.number_input("Multiplicador producción", 0.50, 1.50, 1.00, 0.01)
-    salary_mult = st.number_input("Multiplicador salario", 0.50, 1.50, 1.00, 0.01)
-    market_fee = st.slider("Comisión mercado", 0.0, 0.10, float(config.get("comision_mercado", 0.04)), 0.005)
-    contract_discount = st.slider("Descuento contrato", 0.0, 0.10, float(config.get("descuento_contrato", 0.03)), 0.005)
-    director_reduction = st.slider("Reducción administración director", 0.0, 0.80, float(config.get("reduccion_admin_director", 0.0)), 0.01)
-
-# =============================
-# Cálculos por slots
-# =============================
-slots = st.session_state["slots"]
-slots_used = sum(1 for s in slots if s.get("tipo") != "Vacío")
-empty_slots = st.session_state["slots_desbloqueados"] - slots_used
-
-def slot_levels(tipo: str, rol: str | None = None) -> int:
-    total = 0
-    for s in slots:
-        if s.get("tipo") != tipo:
-            continue
-        if rol is not None and s.get("rol") != rol:
-            continue
-        total += int(s.get("nivel", 1))
-    return total
-
-central_levels = slot_levels("Central eléctrica")
-embalse_levels = slot_levels("Embalse de agua")
-seed_levels = slot_levels("Granja", "Semillera")
-crop_levels = slot_levels("Granja", "Venta")
-depot_levels = slot_levels("Depósito de Embarque")
-total_levels = sum(int(s.get("nivel", 1)) for s in slots if s.get("tipo") != "Vacío")
-
-st.sidebar.info(f"Slots usados: {slots_used} · vacíos: {empty_slots} · niveles totales: {total_levels}")
-
-# Base por nivel
-central_prod_base = float(central["produccion_h"]) * production_mult
-embalse_prod_base = float(embalse["produccion_h"]) * production_mult
-embalse_elec_need_base = float(embalse["electricidad_necesaria_h"]) * production_mult
-seed_prod_base = float(seed_product["produccion_h"]) * production_mult
-seed_water_need_base = float(seed_product["agua_necesaria_h"]) * production_mult
-transport_market_price = float(latest_prices.get("Transporte", config.get("precio_transporte_default", 0.389)))
-diesel_price = float(latest_prices.get("Diésel", config.get("precio_diesel_default", 40.75)))
+# ============================================================
+# Escenarios por defecto
+# ============================================================
+def default_scenarios() -> Dict[str, dict]:
+    return {
+        "Mi empresa actual": {
+            "tipo": "Real",
+            "descripcion": "Tu empresa cargada: central N1, embalse N1, granja semillera N2, 3 granjas comunes N1.",
+            "cash": 146000,
+            "deuda": 0,
+            "rows": [
+                {"Activo": True, "Edificio": "Central eléctrica", "Producto": "Electricidad", "Nivel total": 1, "Vender salida": False},
+                {"Activo": True, "Edificio": "Embalse de agua", "Producto": "Agua", "Nivel total": 1, "Vender salida": False},
+                {"Activo": True, "Edificio": "Granja", "Producto": "Semillas", "Nivel total": 2, "Vender salida": False},
+                {"Activo": True, "Edificio": "Granja", "Producto": "Simular opciones", "Nivel total": 3, "Vender salida": True},
+            ],
+        },
+        "Agricultura integrada ejemplo": {
+            "tipo": "Simulada",
+            "descripcion": "Ejemplo para probar agricultura integrada con más niveles.",
+            "cash": 0,
+            "deuda": 0,
+            "rows": [
+                {"Activo": True, "Edificio": "Central eléctrica", "Producto": "Electricidad", "Nivel total": 2, "Vender salida": False},
+                {"Activo": True, "Edificio": "Embalse de agua", "Producto": "Agua", "Nivel total": 3, "Vender salida": False},
+                {"Activo": True, "Edificio": "Granja", "Producto": "Semillas", "Nivel total": 3, "Vender salida": False},
+                {"Activo": True, "Edificio": "Granja", "Producto": "Simular opciones", "Nivel total": 5, "Vender salida": True},
+            ],
+        },
+        "Solo comprar insumos y producir": {
+            "tipo": "Simulada",
+            "descripcion": "Ejemplo de producción sin cadena propia: compra electricidad/agua/semillas/insumos al mercado.",
+            "cash": 0,
+            "deuda": 0,
+            "rows": [
+                {"Activo": True, "Edificio": "Granja", "Producto": "Simular opciones", "Nivel total": 6, "Vender salida": True},
+            ],
+        },
+    }
 
 
-def admin_pct(levels_total: int) -> float:
-    return max(0.0, (int(levels_total) - 1) / 170.0) * (1 - director_reduction)
+if "scenarios" not in st.session_state:
+    st.session_state["scenarios"] = default_scenarios()
+if "scenario_name" not in st.session_state:
+    st.session_state["scenario_name"] = "Mi empresa actual"
+if "fuentes_insumos" not in st.session_state:
+    st.session_state["fuentes_insumos"] = pd.DataFrame([
+        {"Insumo": "Electricidad", "Fuente": "Propia", "% propio si Mixta": 50},
+        {"Insumo": "Agua", "Fuente": "Propia", "% propio si Mixta": 50},
+        {"Insumo": "Semillas", "Fuente": "Propia", "% propio si Mixta": 50},
+        {"Insumo": "Diésel", "Fuente": "Mercado", "% propio si Mixta": 0},
+        {"Insumo": "Transporte", "Fuente": "Mercado", "% propio si Mixta": 0},
+    ])
+
+# ============================================================
+# Configuración global
+# ============================================================
+st.title("Sim Companies Business Simulator V2")
+st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
+
+with st.container(border=True):
+    st.markdown('<div class="module-title">1. Configuración global</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Reglas generales del cálculo. No son decisiones: son supuestos editables.</div>', unsafe_allow_html=True)
+    c1, c2, c3, c4, c5 = st.columns(5)
+    with c1:
+        price_mode = st.selectbox("Precio usado", PRICE_OPTIONS, index=0)
+        analysis_hours = st.number_input("Horas simuladas", min_value=1, max_value=24*30, value=24, step=1)
+    with c2:
+        market_fee = st.number_input("Comisión venta mercado", min_value=0.0, max_value=0.25, value=float(config_raw.get("comision_mercado", 0.03)), step=0.005, format="%.3f")
+        contract_discount = st.number_input("Descuento venta contrato", min_value=0.0, max_value=0.50, value=float(config_raw.get("descuento_contrato", 0.03)), step=0.005, format="%.3f")
+    with c3:
+        sale_mode = st.selectbox("Canal de venta", SALE_OPTIONS, index=0)
+        contract_transport_factor = st.number_input("Transporte en contrato", min_value=0.0, max_value=1.0, value=0.50, step=0.05, help="0.50 = se cobra la mitad del transporte respecto al mercado.")
+    with c4:
+        production_mult = st.number_input("Multiplicador producción", min_value=0.10, max_value=3.00, value=1.00, step=0.01)
+        salary_mult = st.number_input("Multiplicador salario", min_value=0.10, max_value=3.00, value=1.00, step=0.01)
+    with c5:
+        director_reduction = st.number_input("Reducción admin", min_value=0.0, max_value=0.95, value=float(config_raw.get("reduccion_admin_director", 0.0)), step=0.01)
+        sell_surplus = st.checkbox("Vender excedentes", value=True)
+
+# Productos editables
+products = st.session_state["productos_editados"].copy()
+buildings = buildings_raw.copy()
+market_stats = build_market_stats(products, hist)
+
+# ============================================================
+# 2. Empresas / escenarios
+# ============================================================
+with st.container(border=True):
+    st.markdown('<div class="module-title">2. Empresas / escenarios</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Elegí tu empresa real o un escenario simulado. Podés duplicar, crear y modificar sin tocar el juego.</div>', unsafe_allow_html=True)
+
+    names = list(st.session_state["scenarios"].keys())
+    if st.session_state["scenario_name"] not in names:
+        st.session_state["scenario_name"] = names[0]
+
+    a, b, c, d = st.columns([2.2, 1.2, 1.2, 1.2])
+    with a:
+        scenario_name = st.selectbox("Empresa / escenario activo", names, index=names.index(st.session_state["scenario_name"]))
+        st.session_state["scenario_name"] = scenario_name
+    with b:
+        if st.button("Duplicar escenario", use_container_width=True):
+            base = st.session_state["scenarios"][scenario_name]
+            new_name = f"{scenario_name} copia"
+            i = 2
+            while new_name in st.session_state["scenarios"]:
+                new_name = f"{scenario_name} copia {i}"
+                i += 1
+            st.session_state["scenarios"][new_name] = json.loads(json.dumps(base))
+            st.session_state["scenarios"][new_name]["tipo"] = "Simulada"
+            st.session_state["scenario_name"] = new_name
+            st.rerun()
+    with c:
+        if st.button("Nuevo vacío", use_container_width=True):
+            new_name = "Empresa nueva"
+            i = 2
+            while new_name in st.session_state["scenarios"]:
+                new_name = f"Empresa nueva {i}"
+                i += 1
+            st.session_state["scenarios"][new_name] = {
+                "tipo": "Simulada",
+                "descripcion": "Escenario vacío para armar desde cero.",
+                "cash": 0,
+                "deuda": 0,
+                "rows": [],
+            }
+            st.session_state["scenario_name"] = new_name
+            st.rerun()
+    with d:
+        if st.button("Reset V2", use_container_width=True):
+            st.session_state["scenarios"] = default_scenarios()
+            st.session_state["scenario_name"] = "Mi empresa actual"
+            st.rerun()
+
+    scenario = st.session_state["scenarios"][st.session_state["scenario_name"]]
+    m1, m2, m3, m4 = st.columns(4)
+    scenario["tipo"] = m1.selectbox("Tipo", ["Real", "Simulada"], index=0 if scenario.get("tipo") == "Real" else 1)
+    scenario["cash"] = m2.number_input("Cash / capital", value=float(scenario.get("cash", 0)), step=1000.0)
+    scenario["deuda"] = m3.number_input("Deuda", value=float(scenario.get("deuda", 0)), step=1000.0)
+    scenario["descripcion"] = m4.text_input("Descripción corta", value=str(scenario.get("descripcion", "")))
+
+# ============================================================
+# 3. Edificios
+# ============================================================
+def scenario_rows_df(scenario: dict) -> pd.DataFrame:
+    rows = scenario.get("rows", [])
+    if not rows:
+        rows = [{"Activo": True, "Edificio": buildings_raw["edificio"].iloc[0], "Producto": "Simular opciones", "Nivel total": 1, "Vender salida": True}]
+    df = pd.DataFrame(rows)
+    for col, default in [("Activo", True), ("Edificio", "Granja"), ("Producto", "Simular opciones"), ("Nivel total", 1), ("Vender salida", True)]:
+        if col not in df.columns:
+            df[col] = default
+    return df[["Activo", "Edificio", "Producto", "Nivel total", "Vender salida"]]
 
 
-def unit_costs(levels_total: int) -> dict:
-    admin = admin_pct(levels_total)
-    central_salary_lvl = float(central["salario_h"]) * salary_mult * (1 + admin)
-    embalse_salary_lvl = float(embalse["salario_h"]) * salary_mult * (1 + admin)
-    granja_salary_lvl = float(granja["salario_h"]) * salary_mult * (1 + admin)
-    deposito_salary_lvl = float(deposito["salario_h"]) * salary_mult * (1 + admin)
-
-    electricity_unit_cost = safe_div(central_salary_lvl, central_prod_base)
-    water_unit_cost = safe_div(embalse_salary_lvl + embalse_elec_need_base * electricity_unit_cost, embalse_prod_base)
-    seed_unit_cost = safe_div(granja_salary_lvl + seed_water_need_base * water_unit_cost, seed_prod_base)
-
-    transport_output = float(deposito["produccion_h"]) * production_mult
-    transport_own_cost = safe_div(
-        deposito_salary_lvl + transport_output * (1 / 95) * electricity_unit_cost + transport_output * (1 / 190) * diesel_price,
-        transport_output,
+with st.container(border=True):
+    st.markdown('<div class="module-title">3. Edificios de la empresa seleccionada</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Cargá niveles totales por tipo de edificio/uso. No hace falta cargar slot por slot.</div>', unsafe_allow_html=True)
+    building_options = buildings["edificio"].dropna().astype(str).tolist()
+    product_options = ["Simular opciones"] + products["producto"].dropna().astype(str).tolist()
+    edited_rows = st.data_editor(
+        scenario_rows_df(scenario),
+        use_container_width=True,
+        hide_index=True,
+        num_rows="dynamic",
+        column_config={
+            "Activo": st.column_config.CheckboxColumn("Activo"),
+            "Edificio": st.column_config.SelectboxColumn("Edificio", options=building_options),
+            "Producto": st.column_config.SelectboxColumn("Producto", options=product_options),
+            "Nivel total": st.column_config.NumberColumn("Nivel total", min_value=0, max_value=100, step=1),
+            "Vender salida": st.column_config.CheckboxColumn("Vender salida", help="Si está apagado, la producción se usa como insumo interno y solo se vende el excedente si activaste vender excedentes."),
+        },
+        key=f"rows_editor_{st.session_state['scenario_name']}",
     )
-    return {
-        "admin": admin,
-        "central_salary_lvl": central_salary_lvl,
-        "embalse_salary_lvl": embalse_salary_lvl,
-        "granja_salary_lvl": granja_salary_lvl,
-        "deposito_salary_lvl": deposito_salary_lvl,
-        "electricity_unit_cost": electricity_unit_cost,
-        "water_unit_cost": water_unit_cost,
-        "seed_unit_cost": seed_unit_cost,
-        "transport_own_cost": transport_own_cost,
-    }
+    edited_rows["Nivel total"] = pd.to_numeric(edited_rows["Nivel total"], errors="coerce").fillna(0).astype(int)
+    scenario["rows"] = edited_rows.to_dict(orient="records")
+
+    total_levels = int(edited_rows.loc[edited_rows["Activo"], "Nivel total"].sum()) if not edited_rows.empty else 0
+    used_building_rows = int((edited_rows["Activo"] & (edited_rows["Nivel total"] > 0)).sum()) if not edited_rows.empty else 0
+    admin_pct = max(0.0, (total_levels - 1) / 170.0) * (1 - director_reduction)
+    mm1, mm2, mm3, mm4 = st.columns(4)
+    mm1.metric("Niveles totales", total_levels)
+    mm2.metric("Bloques activos", used_building_rows)
+    mm3.metric("Administración estimada", pct(admin_pct))
+    mm4.metric("Cash neto", money(float(scenario.get("cash", 0)) - float(scenario.get("deuda", 0))))
+
+# ============================================================
+# 4. Productos / recetas
+# ============================================================
+with st.container(border=True):
+    st.markdown('<div class="module-title">4. Productos / recetas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Base editable de producción y requisitos. Acá se corrigen fórmulas si el juego cambia o si hay datos mal cargados.</div>', unsafe_allow_html=True)
+    with st.expander("Ver / editar recetas y requisitos", expanded=False):
+        editable_cols = [
+            "kind", "producto", "edificio", "produccion_h", "agua_necesaria_h", "semillas_necesarias_h",
+            "electricidad_necesaria_h", "diesel_necesario_h", "transporte_mercado", "precio_default", "costo_manual"
+        ]
+        edited_products = st.data_editor(
+            products[editable_cols],
+            use_container_width=True,
+            hide_index=True,
+            num_rows="dynamic",
+            key="productos_v2_editor",
+        )
+        st.session_state["productos_editados"] = edited_products.copy()
+        products = edited_products.copy()
+        market_stats = build_market_stats(products, hist)
+        st.download_button(
+            "Descargar productos_v1.csv editado",
+            data=edited_products.to_csv(index=False).encode("utf-8"),
+            file_name="productos_v1_editado.csv",
+            mime="text/csv",
+        )
+
+# ============================================================
+# 5. Fuente de insumos
+# ============================================================
+with st.container(border=True):
+    st.markdown('<div class="module-title">5. Fuente de insumos</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Define si cada insumo se valora como producción propia, mercado, contrato o mixto.</div>', unsafe_allow_html=True)
+    fuente_df = st.data_editor(
+        st.session_state["fuentes_insumos"],
+        use_container_width=True,
+        hide_index=True,
+        num_rows="dynamic",
+        column_config={
+            "Insumo": st.column_config.SelectboxColumn("Insumo", options=sorted(set(list(REQ_MAP.keys()) + ["Transporte"] + products["producto"].astype(str).tolist()))),
+            "Fuente": st.column_config.SelectboxColumn("Fuente", options=SOURCE_OPTIONS),
+            "% propio si Mixta": st.column_config.NumberColumn("% propio si Mixta", min_value=0, max_value=100, step=5),
+        },
+        key="fuentes_v2_editor",
+    )
+    fuente_df["% propio si Mixta"] = pd.to_numeric(fuente_df["% propio si Mixta"], errors="coerce").fillna(0).clip(0, 100)
+    st.session_state["fuentes_insumos"] = fuente_df.copy()
+
+# ============================================================
+# Motor de simulación
+# ============================================================
+def fuente_config(fuente_df: pd.DataFrame) -> Dict[str, dict]:
+    out: Dict[str, dict] = {}
+    for _, r in fuente_df.iterrows():
+        out[str(r.get("Insumo", ""))] = {
+            "Fuente": str(r.get("Fuente", "Mercado")),
+            "pct_propio": float(r.get("% propio si Mixta", 0) or 0) / 100.0,
+        }
+    return out
 
 
-def net_price_market(product_name: str, transport_unit_cost: float) -> float:
-    price = float(latest_prices.get(product_name, 0) or 0)
-    tr = float(get_product(product_name).get("transporte_mercado", 0) or 0)
-    return price * (1 - market_fee) - tr * transport_unit_cost
+def active_rows_for_scenario(scenario: dict) -> List[dict]:
+    df = pd.DataFrame(scenario.get("rows", []))
+    if df.empty:
+        return []
+    df["Activo"] = df.get("Activo", True).astype(bool)
+    df["Nivel total"] = pd.to_numeric(df.get("Nivel total", 0), errors="coerce").fillna(0).astype(int)
+    df = df[(df["Activo"]) & (df["Nivel total"] > 0)]
+    return df.to_dict(orient="records")
 
 
-def net_price_contract(product_name: str, transport_unit_cost: float) -> float:
-    price = float(latest_prices.get(product_name, 0) or 0)
-    tr = float(get_product(product_name).get("transporte_mercado", 0) or 0)
-    return price * (1 - contract_discount) - (tr / 2) * transport_unit_cost
+def product_options_for_building(products: pd.DataFrame, edificio: str) -> List[str]:
+    opts = products[(products["edificio"] == edificio) & (products["produccion_h"] > 0)]["producto"].dropna().astype(str).tolist()
+    return opts or products[products["produccion_h"] > 0]["producto"].dropna().astype(str).tolist()
 
 
-def chosen_net_price(product_name: str, transport_unit_cost: float) -> Tuple[str, float]:
-    m = net_price_market(product_name, transport_unit_cost)
-    c = net_price_contract(product_name, transport_unit_cost)
-    if sale_mode == "Mercado":
-        return "Mercado", m
-    if sale_mode == "Contrato":
-        return "Contrato", c
-    return ("Contrato", c) if c > m else ("Mercado", m)
+def expand_variants(rows: List[dict], products: pd.DataFrame, max_variants: int = 250) -> List[Tuple[str, List[dict]]]:
+    sim_positions = [i for i, r in enumerate(rows) if str(r.get("Producto")) == "Simular opciones"]
+    if not sim_positions:
+        name = " + ".join(str(r.get("Producto")) for r in rows if bool(r.get("Vender salida", False))) or "Escenario"
+        return [(name, rows)]
+
+    options_by_pos = []
+    for pos in sim_positions:
+        edificio = str(rows[pos].get("Edificio", ""))
+        options_by_pos.append(product_options_for_building(products, edificio))
+
+    variants = []
+    for combo in itertools.product(*options_by_pos):
+        new_rows = [dict(r) for r in rows]
+        for pos, prod_name in zip(sim_positions, combo):
+            new_rows[pos]["Producto"] = prod_name
+        label_parts = []
+        for r in new_rows:
+            if bool(r.get("Vender salida", False)):
+                label_parts.append(f"{r.get('Producto')} N{r.get('Nivel total')}")
+        variants.append((" + ".join(label_parts) or "Escenario", new_rows))
+        if len(variants) >= max_variants:
+            break
+    return variants
 
 
-def physical_water_capacity(central_lvls: int, embalse_lvls: int) -> tuple[float, float, float, bool]:
-    elec_total = central_lvls * central_prod_base
-    elec_for_embalse_full = embalse_lvls * embalse_elec_need_base
-    embalse_water_full = embalse_lvls * embalse_prod_base
-    elec_shortage = elec_for_embalse_full > elec_total + 1e-9
-    if not elec_shortage:
-        water = embalse_water_full
-        elec_surplus = elec_total - elec_for_embalse_full
-    else:
-        water = safe_div(elec_total, embalse_elec_need_base) * embalse_prod_base
-        elec_surplus = 0.0
-    return water, elec_total, elec_surplus, elec_shortage
+def scenario_output_capacity(rows: List[dict], products: pd.DataFrame) -> Dict[str, float]:
+    out: Dict[str, float] = {}
+    for r in rows:
+        prod_name = str(r.get("Producto", ""))
+        pr = get_product_row(products, prod_name)
+        if pr.empty:
+            continue
+        qty = float(r.get("Nivel total", 0) or 0) * float(pr.get("produccion_h", 0) or 0) * production_mult
+        out[prod_name] = out.get(prod_name, 0.0) + qty
+    return out
 
 
-def crop_unit_cost(crop_name: str, costs: dict) -> float:
-    r = get_product(crop_name)
-    prod = float(r.get("produccion_h", 0) or 0) * production_mult
-    water_need = float(r.get("agua_necesaria_h", 0) or 0) * production_mult
-    seed_need = float(r.get("semillas_necesarias_h", 0) or 0) * production_mult
-    return safe_div(costs["granja_salary_lvl"] + water_need * costs["water_unit_cost"] + seed_need * costs["seed_unit_cost"], prod)
+def salary_per_level(edificio: str) -> float:
+    br = get_building_row(buildings, edificio)
+    if br.empty:
+        return 0.0
+    return float(br.get("salario_h", 0) or 0) * salary_mult * (1 + admin_pct)
 
 
-def simulate(crop_name: str) -> dict:
-    costs = unit_costs(total_levels)
-    transport_unit_cost = transport_market_price  # V1: por defecto se compra transporte.
+def product_building(producto: str, products: pd.DataFrame) -> str:
+    r = get_product_row(products, producto)
+    return "" if r.empty else str(r.get("edificio", ""))
 
-    water_cap, elec_total, elec_surplus, elec_shortage = physical_water_capacity(central_levels, embalse_levels)
-    r = get_product(crop_name)
 
-    crop_prod_per_level = float(r["produccion_h"]) * production_mult
-    crop_water_per_level = float(r["agua_necesaria_h"]) * production_mult
-    crop_seed_per_level = float(r["semillas_necesarias_h"]) * production_mult
+def market_buy_price(producto: str, market_stats: pd.DataFrame) -> float:
+    return price_of(producto, market_stats, price_mode)
 
-    seed_production_full = seed_levels * seed_prod_base
-    seed_water_full = seed_levels * seed_water_need_base
 
-    # Primero se abastece el bloque semillero.
-    if seed_water_full > water_cap and seed_water_full > 0:
-        seed_factor = water_cap / seed_water_full
-        seed_production_real = seed_production_full * seed_factor
-        water_left = 0.0
-    else:
-        seed_factor = 1.0
-        seed_production_real = seed_production_full
-        water_left = water_cap - seed_water_full
+def own_possible(producto: str, rows: List[dict], products: pd.DataFrame) -> bool:
+    return any(str(r.get("Producto")) == producto and float(r.get("Nivel total", 0) or 0) > 0 for r in rows)
 
-    crop_output_full = crop_levels * crop_prod_per_level
-    crop_water_full = crop_levels * crop_water_per_level
-    crop_seed_full = crop_levels * crop_seed_per_level
 
-    factor_by_water = 1.0 if crop_water_full <= 0 else min(1.0, safe_div(water_left, crop_water_full))
-    factor_by_seed = 1.0 if crop_seed_full <= 0 else min(1.0, safe_div(seed_production_real, crop_seed_full))
-    crop_factor = min(factor_by_water, factor_by_seed)
+def calculate_unit_costs(rows: List[dict], products: pd.DataFrame, market_stats: pd.DataFrame, fuente_df: pd.DataFrame) -> Dict[str, dict]:
+    fcfg = fuente_config(fuente_df)
+    memo: Dict[str, dict] = {}
 
-    output = crop_output_full * crop_factor
-    seeds_used = crop_seed_full * crop_factor
-    water_used_crop = crop_water_full * crop_factor
-    water_used = min(seed_water_full, water_cap) + water_used_crop
+    def input_unit_price(input_name: str, stack: Tuple[str, ...]) -> float:
+        cfg = fcfg.get(input_name, {"Fuente": "Mercado", "pct_propio": 0})
+        source = cfg.get("Fuente", "Mercado")
+        market_price = market_buy_price(input_name, market_stats)
+        if source == "Mercado":
+            return market_price
+        if source == "Contrato":
+            # Supuesto simple: contrato de compra con el mismo descuento cargado.
+            return market_price * (1 - contract_discount)
+        if source in {"Propia", "Mixta"} and own_possible(input_name, rows, products):
+            own = unit_cost(input_name, stack + (input_name,)).get("Costo/u", market_price)
+            if source == "Propia":
+                return own
+            pct_own = float(cfg.get("pct_propio", 0) or 0)
+            return pct_own * own + (1 - pct_own) * market_price
+        return market_price
 
-    seeds_surplus = max(0.0, seed_production_real - seeds_used)
-    water_surplus = max(0.0, water_cap - water_used)
-    elec_surplus = max(0.0, elec_surplus)
+    def unit_cost(producto: str, stack: Tuple[str, ...] = ()) -> dict:
+        if producto in memo:
+            return memo[producto]
+        if producto in stack:
+            # Evita ciclos raros si se editan recetas.
+            price = market_buy_price(producto, market_stats)
+            return {"Producto": producto, "Costo/u": price, "Salario/u": 0.0, "Insumos/u": price, "Detalle": "ciclo -> mercado"}
+        pr = get_product_row(products, producto)
+        if pr.empty or float(pr.get("produccion_h", 0) or 0) <= 0:
+            price = market_buy_price(producto, market_stats)
+            return {"Producto": producto, "Costo/u": price, "Salario/u": 0.0, "Insumos/u": price, "Detalle": "sin receta -> mercado"}
 
-    channel, net_u = chosen_net_price(crop_name, transport_unit_cost)
-    cost_u = crop_unit_cost(crop_name, costs)
-    profit_u = net_u - cost_u
-    crop_profit_h = output * profit_u
-
-    surplus_profit = 0.0
-    surplus_items = []
-    if sell_surplus:
-        for pname, qty, unit_cost in [
-            ("Electricidad", elec_surplus, costs["electricity_unit_cost"]),
-            ("Agua", water_surplus, costs["water_unit_cost"]),
-            ("Semillas", seeds_surplus, costs["seed_unit_cost"]),
-        ]:
-            if qty <= 1e-9:
+        edificio = str(pr.get("edificio", ""))
+        prod_h = float(pr.get("produccion_h", 0) or 0) * production_mult
+        sal_u = safe_div(salary_per_level(edificio), prod_h)
+        ins_u = 0.0
+        details = []
+        for input_name, col in REQ_MAP.items():
+            need_h = float(pr.get(col, 0) or 0) * production_mult
+            if need_h <= 0:
                 continue
-            net_surplus = net_price_market(pname, transport_unit_cost)
-            profit_surplus_u = net_surplus - unit_cost
-            profit_surplus_h = qty * profit_surplus_u
-            surplus_profit += profit_surplus_h
-            surplus_items.append({
-                "Producto": pname,
-                "Cantidad/h": qty,
-                "Beneficio/u": profit_surplus_u,
-                "Beneficio/h": profit_surplus_h,
-            })
+            need_u = safe_div(need_h, prod_h)
+            in_price = input_unit_price(input_name, stack)
+            ins_u += need_u * in_price
+            details.append(f"{input_name}: {num(need_u, 4)}u × {money(in_price)}")
+        result = {
+            "Producto": producto,
+            "Costo/u": sal_u + ins_u,
+            "Salario/u": sal_u,
+            "Insumos/u": ins_u,
+            "Detalle": "; ".join(details),
+        }
+        memo[producto] = result
+        return result
 
-    bottlenecks = []
-    if factor_by_seed < 0.999:
-        bottlenecks.append("semillas")
-    if factor_by_water < 0.999 or seed_factor < 0.999:
-        bottlenecks.append("agua")
-    if elec_shortage:
-        bottlenecks.append("electricidad")
-    if not bottlenecks:
-        bottlenecks.append("sin cuello fuerte")
+    # Calcula para todos los productos con receta y para los productos presentes en filas.
+    for p in products[products["produccion_h"] > 0]["producto"].dropna().astype(str).tolist():
+        unit_cost(p, ())
+    return memo
+
+
+def transport_unit_cost(rows: List[dict], unit_costs: Dict[str, dict], market_stats: pd.DataFrame, fuente_df: pd.DataFrame) -> float:
+    fcfg = fuente_config(fuente_df)
+    cfg = fcfg.get("Transporte", {"Fuente": "Mercado", "pct_propio": 0})
+    market_price = market_buy_price("Transporte", market_stats)
+    source = cfg.get("Fuente", "Mercado")
+    if source == "Mercado":
+        return market_price
+    if source == "Contrato":
+        return market_price * (1 - contract_discount)
+    own = unit_costs.get("Transporte", {}).get("Costo/u", market_price)
+    if source == "Propia" and own_possible("Transporte", rows, products):
+        return own
+    if source == "Mixta" and own_possible("Transporte", rows, products):
+        pct_own = float(cfg.get("pct_propio", 0) or 0)
+        return pct_own * own + (1 - pct_own) * market_price
+    return market_price
+
+
+def net_sale_price(producto: str, unit_costs: Dict[str, dict], rows: List[dict]) -> Tuple[str, float, float, float]:
+    pr = get_product_row(products, producto)
+    price = market_buy_price(producto, market_stats)
+    tr_need = float(pr.get("transporte_mercado", 0) or 0) if not pr.empty else 0.0
+    tr_u = transport_unit_cost(rows, unit_costs, market_stats, fuente_df)
+    market_net = price * (1 - market_fee) - tr_need * tr_u
+    contract_net = price * (1 - contract_discount) - tr_need * tr_u * contract_transport_factor
+    if sale_mode == "Mercado":
+        return "Mercado", market_net, price, tr_need * tr_u
+    if sale_mode == "Contrato":
+        return "Contrato", contract_net, price, tr_need * tr_u * contract_transport_factor
+    if contract_net > market_net:
+        return "Contrato", contract_net, price, tr_need * tr_u * contract_transport_factor
+    return "Mercado", market_net, price, tr_need * tr_u
+
+
+def simulate_variant(label: str, rows: List[dict], products: pd.DataFrame, market_stats: pd.DataFrame, fuente_df: pd.DataFrame) -> dict:
+    outputs: Dict[str, float] = {}
+    needs: Dict[str, float] = {k: 0.0 for k in REQ_MAP.keys()}
+    unit_costs = calculate_unit_costs(rows, products, market_stats, fuente_df)
+
+    # Producción y consumo físico por hora
+    for r in rows:
+        prod_name = str(r.get("Producto", ""))
+        pr = get_product_row(products, prod_name)
+        if pr.empty:
+            continue
+        levels = float(r.get("Nivel total", 0) or 0)
+        qty = levels * float(pr.get("produccion_h", 0) or 0) * production_mult
+        outputs[prod_name] = outputs.get(prod_name, 0.0) + qty
+        for input_name, col in REQ_MAP.items():
+            needs[input_name] = needs.get(input_name, 0.0) + levels * float(pr.get(col, 0) or 0) * production_mult
+
+    # Beneficio por producción marcada como vendible
+    sell_rows = []
+    total_revenue_h = 0.0
+    total_cost_h = 0.0
+    total_profit_h = 0.0
+    for r in rows:
+        if not bool(r.get("Vender salida", False)):
+            continue
+        prod_name = str(r.get("Producto", ""))
+        pr = get_product_row(products, prod_name)
+        if pr.empty:
+            continue
+        levels = float(r.get("Nivel total", 0) or 0)
+        qty = levels * float(pr.get("produccion_h", 0) or 0) * production_mult
+        channel, net_u, gross_u, transport_cost_u = net_sale_price(prod_name, unit_costs, rows)
+        cost_u = float(unit_costs.get(prod_name, {}).get("Costo/u", market_buy_price(prod_name, market_stats)))
+        revenue_h = qty * net_u
+        cost_h = qty * cost_u
+        profit_h = revenue_h - cost_h
+        total_revenue_h += revenue_h
+        total_cost_h += cost_h
+        total_profit_h += profit_h
+        sell_rows.append({
+            "Producto": prod_name,
+            "Nivel total": int(levels),
+            "Producción/h": qty,
+            "Canal": channel,
+            "Precio bruto/u": gross_u,
+            "Transporte/u": transport_cost_u,
+            "Precio neto/u": net_u,
+            "Costo/u": cost_u,
+            "Beneficio/u": net_u - cost_u,
+            "Beneficio/h": profit_h,
+        })
+
+    # Sobrantes/faltantes físicos
+    balances = []
+    surplus_profit_h = 0.0
+    for input_name in sorted(set(list(outputs.keys()) + list(needs.keys()))):
+        produced = float(outputs.get(input_name, 0.0))
+        needed = float(needs.get(input_name, 0.0))
+        balance = produced - needed
+        uc = float(unit_costs.get(input_name, {}).get("Costo/u", market_buy_price(input_name, market_stats)))
+        channel, net_u, _, _ = net_sale_price(input_name, unit_costs, rows)
+        surplus_profit = 0.0
+        if sell_surplus and balance > 0 and input_name not in [s["Producto"] for s in sell_rows]:
+            # Vende solo excedentes de productos que no fueron vendidos como salida principal.
+            surplus_profit = balance * (net_u - uc)
+            surplus_profit_h += surplus_profit
+        balances.append({
+            "Producto/Insumo": input_name,
+            "Producido/h": produced,
+            "Necesario/h": needed,
+            "Sobra/Falta/h": balance,
+            "Costo propio/u": uc,
+            "Precio neto venta/u": net_u,
+            "Beneficio excedente/h": surplus_profit,
+        })
+
+    total_profit_h += surplus_profit_h
+
+    # Capital base aproximado: costo_n1 * niveles. No es upgrade exacto, solo proxy.
+    cap_base = 0.0
+    for r in rows:
+        br = get_building_row(buildings, str(r.get("Edificio", "")))
+        if br.empty:
+            continue
+        cap_base += float(br.get("costo_n1", 0) or 0) * float(r.get("Nivel total", 0) or 0)
 
     return {
-        "Producto": crop_name,
-        "Canal": channel,
-        "Central nivel total": central_levels,
-        "Embalse nivel total": embalse_levels,
-        "Semillera nivel total": seed_levels,
-        "Venta nivel total": crop_levels,
-        "Depósito nivel total": depot_levels,
-        "Slots usados": slots_used,
-        "Admin": costs["admin"],
-        "Producción vendible/h": output,
-        "Beneficio cultivo/h": crop_profit_h,
-        "Beneficio excedentes/h": surplus_profit,
-        "Beneficio total/h": crop_profit_h + surplus_profit,
-        "Beneficio/u cultivo": profit_u,
-        "Semillas producidas/h": seed_production_real,
-        "Semillas usadas/h": seeds_used,
-        "Semillas sobrantes/h": seeds_surplus,
-        "Agua producida/h": water_cap,
-        "Agua usada/h": water_used,
-        "Agua sobrante/h": water_surplus,
-        "Electricidad producida/h": elec_total,
-        "Electricidad sobrante/h": elec_surplus,
-        "Cuello": ", ".join(dict.fromkeys(bottlenecks)),
-        "Excedentes": surplus_items,
-        "Costos": costs,
+        "Variante": label,
+        "Filas": rows,
+        "Ventas": sell_rows,
+        "Balances": balances,
+        "UnitCosts": unit_costs,
+        "Ingreso neto/h": total_revenue_h,
+        "Costo total/h": total_cost_h,
+        "Beneficio principal/h": total_revenue_h - total_cost_h,
+        "Beneficio excedentes/h": surplus_profit_h,
+        "Beneficio real/h": total_profit_h,
+        "Beneficio simulado": total_profit_h * float(analysis_hours),
+        "Capital base aprox": cap_base,
+        "ROI horas aprox": safe_div(cap_base, max(total_profit_h, 0.000001)) if total_profit_h > 0 else None,
+        "Niveles totales": sum(int(r.get("Nivel total", 0) or 0) for r in rows),
     }
 
 
-if crop_levels <= 0:
-    st.warning("No tenés ninguna granja marcada como 'Venta'. Marcá al menos un slot de Granja como Venta para simular producto principal.")
+def simulate_scenario(scenario: dict, max_variants: int = 250) -> List[dict]:
+    rows = active_rows_for_scenario(scenario)
+    variants = expand_variants(rows, products, max_variants=max_variants)
+    results = [simulate_variant(label, vrows, products, market_stats, fuente_df) for label, vrows in variants]
+    return sorted(results, key=lambda r: r["Beneficio real/h"], reverse=True)
+
+# Cálculos del escenario activo
+results = simulate_scenario(scenario, max_variants=250)
+if not results:
+    st.warning("El escenario activo no tiene filas válidas para simular.")
     st.stop()
 
-if product_mode == "Automático":
-    all_plans = pd.DataFrame([simulate(crop) for crop in farm_crops]).sort_values("Beneficio total/h", ascending=False).reset_index(drop=True)
-    best = all_plans.iloc[0].to_dict()
-else:
-    best = simulate(manual_crop)
-    all_plans = pd.DataFrame([simulate(crop) for crop in farm_crops]).sort_values("Beneficio total/h", ascending=False).reset_index(drop=True)
+# ============================================================
+# 6. Mercado / historial de precios
+# ============================================================
+with st.container(border=True):
+    st.markdown('<div class="module-title">6. Mercado / historial de precios</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Precios públicos leídos del historial. La app usa la columna elegida en Configuración global.</div>', unsafe_allow_html=True)
+    show_products = sorted(set(
+        [str(r.get("Producto")) for r in active_rows_for_scenario(scenario) if str(r.get("Producto")) != "Simular opciones"]
+        + list(REQ_MAP.keys()) + ["Transporte"]
+        + products[products["edificio"].isin([str(r.get("Edificio")) for r in active_rows_for_scenario(scenario)])]["producto"].astype(str).tolist()
+    ))
+    market_view = market_stats[market_stats["producto"].isin(show_products)].copy()
+    market_view = market_view.sort_values("producto")
+    if market_view.empty:
+        st.info("No hay productos de mercado para mostrar todavía.")
+    else:
+        st.dataframe(
+            fmt_df_money(market_view, ["Último", "Mínimo", "Promedio", "Máximo", "precio_default"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+        if not hist.empty:
+            first = hist["fecha"].min()
+            last = hist["fecha"].max()
+            st.caption(f"Historial leído: {len(hist)} filas · desde {first} hasta {last}.")
+        else:
+            st.caption("No se encontró historial_mercado.csv. Se usan precios default/manuales.")
 
-# =============================
-# UI principal
-# =============================
-st.markdown('<div class="title">🏭 Plan por slots reales</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Cada slot es un edificio individual. Si una granja es nivel 3, se carga en ese slot. Si tenés dos granjas con niveles distintos, son dos slots separados.</div>', unsafe_allow_html=True)
+# ============================================================
+# 7/8/9 Detalle del escenario activo
+# ============================================================
+summary_rows = []
+for r in results:
+    summary_rows.append({
+        "Variante": r["Variante"],
+        "Ingreso neto/h": r["Ingreso neto/h"],
+        "Costo total/h": r["Costo total/h"],
+        "Beneficio principal/h": r["Beneficio principal/h"],
+        "Beneficio excedentes/h": r["Beneficio excedentes/h"],
+        "Beneficio real/h": r["Beneficio real/h"],
+        f"Beneficio {int(analysis_hours)}h": r["Beneficio simulado"],
+        "Capital base aprox": r["Capital base aprox"],
+        "ROI horas aprox": r["ROI horas aprox"],
+    })
+summary_df = pd.DataFrame(summary_rows)
 
-st.markdown(
-    f"""
-    <div class="hero">
-        <div class="small">Empresa cargada: <b>{slots_used} slots usados</b> · <b>{empty_slots} vacío(s)</b> · <b>{total_levels} niveles totales</b></div>
-        <div style="font-size:2.05rem;font-weight:950;margin-top:4px;">{best['Producto']} · {money(best['Beneficio total/h'])}/h</div>
-        <div style="margin-top:10px;">
-            <span class="pill pill-blue">Central nivel total {central_levels}</span>
-            <span class="pill pill-blue">Embalse nivel total {embalse_levels}</span>
-            <span class="pill pill-good">Semillera nivel total {seed_levels}</span>
-            <span class="pill pill-good">Venta nivel total {crop_levels}</span>
-            <span class="pill pill-warn">Venta: {best['Canal']}</span>
-            <span class="pill">Cuello: {best['Cuello']}</span>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
+with st.container(border=True):
+    st.markdown('<div class="module-title">7. Beneficio real</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Ranking numérico de variantes del escenario activo. No decide por vos: solo muestra ingreso, costo y beneficio real.</div>', unsafe_allow_html=True)
+    k1, k2, k3, k4 = st.columns(4)
+    best = results[0]
+    k1.metric("Mayor beneficio/h", money(best["Beneficio real/h"]))
+    k2.metric(f"Beneficio {int(analysis_hours)}h", money(best["Beneficio simulado"]))
+    k3.metric("Ingreso neto/h", money(best["Ingreso neto/h"]))
+    k4.metric("Costo total/h", money(best["Costo total/h"]))
+    formatted_summary = fmt_df_money(summary_df, ["Ingreso neto/h", "Costo total/h", "Beneficio principal/h", "Beneficio excedentes/h", "Beneficio real/h", f"Beneficio {int(analysis_hours)}h", "Capital base aprox", "ROI horas aprox"])
+    st.dataframe(formatted_summary, hide_index=True, use_container_width=True, height=min(520, 120 + len(formatted_summary) * 35))
+
+with st.container(border=True):
+    st.markdown('<div class="module-title">8. Sobrantes / faltantes</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Balance físico por producto/insumo para la variante que selecciones.</div>', unsafe_allow_html=True)
+    variant_names = [r["Variante"] for r in results]
+    selected_variant_name = st.selectbox("Variante para ver detalle", variant_names, index=0)
+    detail = next(r for r in results if r["Variante"] == selected_variant_name)
+    bal_df = pd.DataFrame(detail["Balances"])
+    if not bal_df.empty:
+        st.dataframe(
+            fmt_df_money(bal_df, ["Costo propio/u", "Precio neto venta/u", "Beneficio excedente/h"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.info("Sin balances para mostrar.")
+
+with st.container(border=True):
+    st.markdown('<div class="module-title">9. Costos reales</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Desglose de costo unitario y venta para la variante seleccionada.</div>', unsafe_allow_html=True)
+    vdf = pd.DataFrame(detail["Ventas"])
+    if not vdf.empty:
+        st.dataframe(
+            fmt_df_money(vdf, ["Precio bruto/u", "Transporte/u", "Precio neto/u", "Costo/u", "Beneficio/u", "Beneficio/h"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.info("No hay productos marcados como 'Vender salida'.")
+
+    costs_table = pd.DataFrame(detail["UnitCosts"].values())
+    if not costs_table.empty:
+        show_costs = costs_table[costs_table["Producto"].isin(show_products + [str(v.get("Producto")) for v in detail["Ventas"]])].copy()
+        if show_costs.empty:
+            show_costs = costs_table.head(25).copy()
+        st.markdown("**Costos unitarios calculados**")
+        st.dataframe(
+            fmt_df_money(show_costs, ["Costo/u", "Salario/u", "Insumos/u"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+# ============================================================
+# 10. Comparador de escenarios
+# ============================================================
+with st.container(border=True):
+    st.markdown('<div class="module-title">10. Comparador de escenarios</div>', unsafe_allow_html=True)
+    st.markdown('<div class="module-sub">Compara empresas reales o simuladas. Muestra el mejor resultado calculado por cada escenario, sin recomendación automática.</div>', unsafe_allow_html=True)
+    compare_rows = []
+    for name, sc in st.session_state["scenarios"].items():
+        try:
+            sc_results = simulate_scenario(sc, max_variants=120)
+            if not sc_results:
+                continue
+            r = sc_results[0]
+            compare_rows.append({
+                "Empresa / escenario": name,
+                "Tipo": sc.get("tipo", "Simulada"),
+                "Variante mostrada": r["Variante"],
+                "Niveles": r["Niveles totales"],
+                "Beneficio/h": r["Beneficio real/h"],
+                f"Beneficio {int(analysis_hours)}h": r["Beneficio simulado"],
+                "Capital base aprox": r["Capital base aprox"],
+                "ROI horas aprox": r["ROI horas aprox"],
+            })
+        except Exception as e:
+            compare_rows.append({
+                "Empresa / escenario": name,
+                "Tipo": sc.get("tipo", "Simulada"),
+                "Variante mostrada": f"Error: {e}",
+                "Niveles": 0,
+                "Beneficio/h": 0,
+                f"Beneficio {int(analysis_hours)}h": 0,
+                "Capital base aprox": 0,
+                "ROI horas aprox": None,
+            })
+    comp_df = pd.DataFrame(compare_rows)
+    if not comp_df.empty:
+        comp_df = comp_df.sort_values("Beneficio/h", ascending=False)
+        st.dataframe(
+            fmt_df_money(comp_df, ["Beneficio/h", f"Beneficio {int(analysis_hours)}h", "Capital base aprox", "ROI horas aprox"]),
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.info("No hay escenarios comparables.")
+
+st.caption(
+    "V2 modular: configuración global · escenarios · edificios · recetas · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
+    "El capital base aproximado usa costo N1 × niveles como proxy; los upgrades exactos quedan para una versión posterior."
 )
-
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("Beneficio total/h", money(best["Beneficio total/h"]))
-c2.metric("Cultivo/h", money(best["Beneficio cultivo/h"]))
-c3.metric("Excedentes/h", money(best["Beneficio excedentes/h"]))
-c4.metric("Producción vendible/h", num(best["Producción vendible/h"], 1))
-
-if empty_slots > 0:
-    st.info("Tenés slot vacío. No se recomienda nada raro automáticamente: elegí vos en el slot vacío si querés probar una Granja, Embalse, Central o Depósito.")
-
-st.markdown("### Bloques reales")
-b1, b2, b3 = st.columns(3)
-with b1:
-    st.markdown(f"""<div class="card"><h3>Soporte</h3><div class="big">Central {central_levels} · Embalse {embalse_levels}</div><div class="small">Suma de niveles reales cargados en slots individuales.</div></div>""", unsafe_allow_html=True)
-with b2:
-    st.markdown(f"""<div class="card"><h3>Semillas</h3><div class="big good">Nivel total {seed_levels}</div><div class="small">Produce {num(best['Semillas producidas/h'],1)} semillas/h · usa {num(best['Semillas usadas/h'],1)} · sobra {num(best['Semillas sobrantes/h'],1)}</div></div>""", unsafe_allow_html=True)
-with b3:
-    st.markdown(f"""<div class="card"><h3>Venta</h3><div class="big warn">Nivel total {crop_levels}</div><div class="small">Granjas marcadas como Venta fabrican {best['Producto']}.</div></div>""", unsafe_allow_html=True)
-
-st.markdown("---")
-tab1, tab2, tab3, tab4 = st.tabs(["✅ Plan actual", "🧱 Slots", "📊 Comparar productos", "⚙️ Costos"])
-
-with tab1:
-    st.markdown("### Saldos por hora")
-    s1, s2, s3 = st.columns(3)
-    s1.metric("Electricidad sobrante", num(best["Electricidad sobrante/h"], 1))
-    s2.metric("Agua sobrante", num(best["Agua sobrante/h"], 1))
-    s3.metric("Semillas sobrantes", num(best["Semillas sobrantes/h"], 1))
-
-    if best["Excedentes"]:
-        st.markdown("### Excedentes vendidos para flujo de caja")
-        ex = pd.DataFrame(best["Excedentes"])
-        ex_view = ex.copy()
-        ex_view["Cantidad/h"] = ex_view["Cantidad/h"].map(lambda x: num(x, 1))
-        ex_view["Beneficio/u"] = ex_view["Beneficio/u"].map(money)
-        ex_view["Beneficio/h"] = ex_view["Beneficio/h"].map(money)
-        st.dataframe(ex_view, hide_index=True, use_container_width=True)
-    else:
-        st.info("No hay excedentes vendibles relevantes, o desactivaste vender excedentes.")
-
-    st.markdown("### Lectura rápida")
-    if "agua" in str(best["Cuello"]):
-        st.warning("Este plan está limitado por agua.")
-    elif "semillas" in str(best["Cuello"]):
-        st.warning("Este plan está limitado por semillas.")
-    elif "electricidad" in str(best["Cuello"]):
-        st.warning("Este plan está limitado por electricidad.")
-    else:
-        st.success("No aparece un cuello fuerte con los slots cargados.")
-
-with tab2:
-    st.markdown("### Cada slot cargado")
-    rows = []
-    for i, s in enumerate(slots, start=1):
-        rows.append({
-            "Slot": i,
-            "Edificio": s.get("tipo", "Vacío"),
-            "Nivel": "—" if s.get("tipo") == "Vacío" else int(s.get("nivel", 1)),
-            "Uso": s.get("rol", "—"),
-        })
-    st.dataframe(pd.DataFrame(rows), hide_index=True, use_container_width=True)
-    st.caption("Ejemplo correcto: si el Slot 3 es Granja nivel 3, es UNA granja nivel 3. Si el Slot 4 es Granja nivel 1, es otra granja distinta.")
-
-with tab3:
-    st.markdown("### Productos posibles con los mismos slots")
-    view_cols = ["Producto", "Canal", "Producción vendible/h", "Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h", "Cuello"]
-    top = all_plans[view_cols].head(30).copy()
-    top["Producción vendible/h"] = top["Producción vendible/h"].map(lambda x: num(x, 1))
-    for col in ["Beneficio cultivo/h", "Beneficio excedentes/h", "Beneficio total/h"]:
-        top[col] = top[col].map(money)
-    st.dataframe(top, hide_index=True, use_container_width=True)
-    st.caption("Esta tabla no cambia tus slots. Solo compara qué fabricar en las granjas marcadas como Venta.")
-
-with tab4:
-    st.markdown("### Costos usados")
-    costs_now = best["Costos"]
-    costs_df = pd.DataFrame([
-        ["Administración por niveles", pct(costs_now["admin"])],
-        ["Electricidad propia", money(costs_now["electricity_unit_cost"])],
-        ["Agua propia", money(costs_now["water_unit_cost"])],
-        ["Semillas propias", money(costs_now["seed_unit_cost"])],
-        ["Transporte comprado", money(transport_market_price)],
-        ["Transporte fabricado estimado", money(costs_now["transport_own_cost"])],
-        ["Diésel", money(diesel_price)],
-    ], columns=["Dato", "Valor"])
-    st.dataframe(costs_df, hide_index=True, use_container_width=True)
-
-    st.markdown("### Precios actuales leídos")
-    simple_prices = []
-    for p in ["Electricidad", "Agua", "Semillas", "Grano", "Caña de azúcar", "Verduras", "Algodón", "Madera", "Transporte", "Diésel"]:
-        simple_prices.append([p, money(latest_prices.get(p, 0))])
-    st.dataframe(pd.DataFrame(simple_prices, columns=["Producto", "Precio"]), hide_index=True, use_container_width=True)
-
-st.markdown("---")
-st.caption("V1.9: slots individuales. Nada de nivel promedio. Cada edificio tiene su propio nivel y su propio uso.")
