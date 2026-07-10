@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2.6",
+    page_title="Sim Companies Business Simulator V2.7",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -378,10 +378,10 @@ def add_director_effects(df: pd.DataFrame) -> pd.DataFrame:
     active_mult = out["Activo"].astype(float)
 
     # Fórmulas V2.6, separadas por efecto:
-    # Management -> Reducción de administración.
-    # Accounting -> Lift contable mostrado en millones.
-    # Communication -> Aumento de ventas retail.
-    # Science -> Probabilidad de patente en puntos porcentuales.
+    # Gestión -> reducción administrativa.
+    # Contabilidad -> mejora contable mostrada en millones.
+    # Comunicación -> aumento de ventas retail.
+    # Ciencia -> probabilidad de patente.
     out["Reducción admin %"] = active_mult * out.apply(
         lambda r: float(r["Management"]) * _director_role_weight(r.get("Puesto asignado"), "COO"), axis=1
     )
@@ -415,7 +415,7 @@ st.session_state["directores"] = add_director_effects(st.session_state["director
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.6")
+st.title("Sim Companies Business Simulator V2.7")
 st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
@@ -470,7 +470,7 @@ with st.container(border=True):
     st.markdown("**Directores**")
     directores_base = add_director_effects(st.session_state["directores"]).copy()
 
-    with st.form("form_directores_v26", clear_on_submit=False):
+    with st.form("form_directores_v27", clear_on_submit=False):
         directores_editados = st.data_editor(
             directores_base,
             use_container_width=True,
@@ -481,17 +481,17 @@ with st.container(border=True):
                 "Activo": st.column_config.CheckboxColumn("Activo"),
                 "Perfil": st.column_config.SelectboxColumn("Perfil", options=DIRECTOR_ROLE_OPTIONS),
                 "Puesto asignado": st.column_config.SelectboxColumn("Puesto asignado", options=DIRECTOR_ROLE_OPTIONS),
-                "Management": st.column_config.NumberColumn("Management", min_value=0, max_value=999, step=1),
-                "Accounting": st.column_config.NumberColumn("Accounting", min_value=0, max_value=999, step=1),
-                "Communication": st.column_config.NumberColumn("Communication", min_value=0, max_value=999, step=1),
-                "Science": st.column_config.NumberColumn("Science", min_value=0, max_value=999, step=1),
-                "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0, format="%.1f"),
-                "Reducción admin %": st.column_config.NumberColumn("Reducción admin %", format="%.1f"),
-                "Lift contable $M": st.column_config.NumberColumn("Lift contable $M", format="%.1f"),
-                "Aumento ventas %": st.column_config.NumberColumn("Aumento ventas %", format="%.1f"),
-                "Patentes +pp": st.column_config.NumberColumn("Patentes +pp", format="%.1f"),
+                "Management": st.column_config.NumberColumn("Gestión", min_value=0, max_value=999, step=1),
+                "Accounting": st.column_config.NumberColumn("Contabilidad", min_value=0, max_value=999, step=1),
+                "Communication": st.column_config.NumberColumn("Comunicación", min_value=0, max_value=999, step=1),
+                "Science": st.column_config.NumberColumn("Ciencia", min_value=0, max_value=999, step=1),
+                "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0, format="$%.1f"),
+                "Reducción admin %": st.column_config.NumberColumn("Reducción administrativa", format="%.1f%%"),
+                "Lift contable $M": st.column_config.NumberColumn("Mejora contable", format="$%.1fM", help="Estimación del efecto contable del director, expresada en millones. No es beneficio directo."),
+                "Aumento ventas %": st.column_config.NumberColumn("Aumento de ventas", format="%.1f%%"),
+                "Patentes +pp": st.column_config.NumberColumn("Probabilidad de patente", format="%.1f%%"),
             },
-            key="directores_v26_editor",
+            key="directores_v27_editor",
         )
         aplicar_directores = st.form_submit_button("Aplicar directores", use_container_width=False)
 
@@ -518,10 +518,10 @@ with st.container(border=True):
     d1, d2, d3, d4, d5, d6 = st.columns(6)
     d1.metric("Costo directores/día", money1(total_director_salary_day))
     d2.metric("Costo directores/h", money1(total_director_salary_h))
-    d3.metric("Reducción admin total", pct_plain(director_reduction_pct_total, 1))
-    d4.metric("Lift contable total", f"${director_accounting_lift_m:.1f}M".replace(".", ","))
-    d5.metric("Aumento ventas total", pct_plain(director_sales_pct_total, 1))
-    d6.metric("Patentes total +pp", pct_plain(director_science_pct_total, 1))
+    d3.metric("Reducción administrativa", pct_plain(director_reduction_pct_total, 1))
+    d4.metric("Mejora contable", f"${director_accounting_lift_m:.1f}M".replace(".", ","))
+    d5.metric("Aumento de ventas", pct_plain(director_sales_pct_total, 1))
+    d6.metric("Probabilidad de patente", pct_plain(director_science_pct_total, 1))
 
 # Productos editables
 products = st.session_state["productos_editados"].copy()
