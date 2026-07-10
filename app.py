@@ -13,7 +13,7 @@ ROOT = Path(__file__).parent
 DATA = ROOT / "data"
 
 st.set_page_config(
-    page_title="Sim Companies Business Simulator V2.2",
+    page_title="Sim Companies Business Simulator V2.4",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -54,6 +54,27 @@ def money(x: Any) -> str:
         return sign + f"${x:,.2f}".replace(",", "_").replace(".", ",").replace("_", ".")
     return sign + f"${x:,.3f}".replace(",", "_").replace(".", ",").replace("_", ".")
 
+
+
+def money1(x: Any) -> str:
+    if x is None or pd.isna(x):
+        return "—"
+    try:
+        x = float(x)
+    except Exception:
+        return "—"
+    sign = "-" if x < 0 else ""
+    x = abs(x)
+    return sign + f"${x:,.1f}".replace(",", "_").replace(".", ",").replace("_", ".")
+
+
+def pct_plain(x: Any, dec: int = 1) -> str:
+    if x is None or pd.isna(x):
+        return "—"
+    try:
+        return f"{float(x):,.{dec}f}%".replace(",", "_").replace(".", ",").replace("_", ".")
+    except Exception:
+        return "—"
 
 def num(x: Any, dec: int = 1) -> str:
     if x is None or pd.isna(x):
@@ -295,18 +316,26 @@ if "fuentes_insumos" not in st.session_state:
         {"Insumo": "Diésel", "Fuente": "Mercado", "% propio si Mixta": 0},
         {"Insumo": "Transporte", "Fuente": "Mercado", "% propio si Mixta": 0},
     ])
+DIRECTOR_COLUMNS = ["Activo", "Nombre", "Puesto", "Management", "Accounting", "Communication", "Science", "Salario diario"]
+
 if "directores" not in st.session_state:
     st.session_state["directores"] = pd.DataFrame([
-        {"Activo": False, "Nombre": "", "Puesto": "COO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
-        {"Activo": False, "Nombre": "", "Puesto": "CFO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
-        {"Activo": False, "Nombre": "", "Puesto": "CMO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
-        {"Activo": False, "Nombre": "", "Puesto": "CTO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0, "Reducción admin %": 0.0, "Bono producción %": 0.0, "Bono venta retail %": 0.0},
-    ])
+        {"Activo": False, "Nombre": "", "Puesto": "COO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CFO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CMO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+        {"Activo": False, "Nombre": "", "Puesto": "CTO", "Management": 0, "Accounting": 0, "Communication": 0, "Science": 0, "Salario diario": 0.0},
+    ], columns=DIRECTOR_COLUMNS)
+else:
+    # Limpia columnas viejas de versiones anteriores guardadas en session_state.
+    for col in DIRECTOR_COLUMNS:
+        if col not in st.session_state["directores"].columns:
+            st.session_state["directores"][col] = "" if col in ["Nombre", "Puesto"] else 0
+    st.session_state["directores"] = st.session_state["directores"][DIRECTOR_COLUMNS].copy()
 
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.3")
+st.title("Sim Companies Business Simulator V2.4")
 st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
@@ -359,8 +388,9 @@ with st.container(border=True):
     contract_discount = contract_discount_pct / 100.0
 
     st.markdown("**Directores**")
+    directores_base = st.session_state["directores"][DIRECTOR_COLUMNS].copy()
     directores_df = st.data_editor(
-        st.session_state["directores"],
+        directores_base,
         use_container_width=True,
         hide_index=True,
         num_rows="dynamic",
@@ -372,13 +402,10 @@ with st.container(border=True):
             "Communication": st.column_config.NumberColumn("Communication", min_value=0, max_value=999, step=1),
             "Science": st.column_config.NumberColumn("Science", min_value=0, max_value=999, step=1),
             "Salario diario": st.column_config.NumberColumn("Salario diario", min_value=0.0, step=100.0),
-            "Reducción admin %": st.column_config.NumberColumn("Reducción admin %", min_value=0.0, max_value=95.0, step=0.1),
-            "Bono producción %": st.column_config.NumberColumn("Bono producción %", min_value=0.0, max_value=300.0, step=0.1),
-            "Bono venta retail %": st.column_config.NumberColumn("Bono venta retail %", min_value=0.0, max_value=300.0, step=0.1),
         },
         key="directores_v21_editor",
     )
-    for col in ["Management", "Accounting", "Communication", "Science", "Salario diario", "Reducción admin %", "Bono producción %", "Bono venta retail %"]:
+    for col in ["Management", "Accounting", "Communication", "Science", "Salario diario"]:
         if col in directores_df.columns:
             directores_df[col] = pd.to_numeric(directores_df[col], errors="coerce").fillna(0)
     if "Activo" in directores_df.columns:
@@ -388,21 +415,19 @@ with st.container(border=True):
     active_directors = directores_df[directores_df["Activo"]] if (not directores_df.empty and "Activo" in directores_df.columns) else pd.DataFrame()
     total_director_salary_day = float(active_directors["Salario diario"].sum()) if not active_directors.empty else 0.0
     total_director_salary_h = total_director_salary_day / 24.0
-    director_admin_reduction_pct = float(active_directors["Reducción admin %"].sum()) if not active_directors.empty else 0.0
-    director_production_bonus_pct = float(active_directors["Bono producción %"].sum()) if not active_directors.empty else 0.0
-    director_retail_bonus_pct = float(active_directors["Bono venta retail %"].sum()) if not active_directors.empty else 0.0
 
-    director_reduction = min(max(director_admin_reduction_pct / 100.0, 0.0), 0.95)
-    production_bonus_pct_total = production_bonus_pct_manual + director_production_bonus_pct
-    retail_bonus_pct_total = retail_bonus_pct_manual + director_retail_bonus_pct
+    # Por ahora los directores solo cargan costo salarial. Los bonus se cargan arriba.
+    director_reduction = 0.0
+    production_bonus_pct_total = production_bonus_pct_manual
+    retail_bonus_pct_total = retail_bonus_pct_manual
     production_mult = max(0.10, 1.0 + production_bonus_pct_total / 100.0)
 
     d1, d2, d3, d4, d5 = st.columns(5)
-    d1.metric("Costo directores/día", money(total_director_salary_day))
-    d2.metric("Costo directores/h", money(total_director_salary_h))
-    d3.metric("Reducción admin cargada", f"{director_admin_reduction_pct:.2f}%".replace(".", ","))
-    d4.metric("Bonus producción total", f"{production_bonus_pct_total:.2f}%".replace(".", ","))
-    d5.metric("Multiplicador aplicado", f"x{production_mult:.4f}".replace(".", ","))
+    d1.metric("Costo directores/día", money1(total_director_salary_day))
+    d2.metric("Costo directores/h", money1(total_director_salary_h))
+    d3.metric("Bonus producción total", pct_plain(production_bonus_pct_total, 1))
+    d4.metric("Bonus venta retail total", pct_plain(retail_bonus_pct_total, 1))
+    d5.metric("Multiplicador aplicado", f"x{production_mult:.1f}".replace(".", ","))
 
 # Productos editables
 products = st.session_state["productos_editados"].copy()
@@ -1065,6 +1090,6 @@ with st.container(border=True):
         st.info("No hay escenarios comparables.")
 
 st.caption(
-    "V2.2 modular: configuración global · escenarios · edificios · recetas base vs efectivo · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
+    "V2.4 modular: configuración global · escenarios · edificios · recetas base vs efectivo · fuentes de insumos · mercado · sobrantes/faltantes · costos · beneficio · comparador. "
     "El capital base aproximado usa costo N1 × niveles como proxy; los upgrades exactos quedan para una versión posterior."
 )
