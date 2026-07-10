@@ -306,13 +306,11 @@ if "directores" not in st.session_state:
 # ============================================================
 # Configuración global
 # ============================================================
-st.title("Sim Companies Business Simulator V2.2.1")
-st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real. V2.2 separa datos base del juego y bonificaciones.")
+st.title("Sim Companies Business Simulator V2.3")
+st.caption("Una pantalla modular para simular tu empresa real, probar empresas nuevas y comparar costos/precios/beneficio real.")
 
 with st.container(border=True):
     st.markdown('<div class="module-title">1. Configuración global</div>', unsafe_allow_html=True)
-    st.markdown('<div class="module-sub">Reglas generales del cálculo. Los porcentajes se cargan como porcentaje real: 4 significa 4%, no 0,04.</div>', unsafe_allow_html=True)
-
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         price_mode = st.selectbox("Precio usado", PRICE_OPTIONS, index=0)
@@ -338,33 +336,29 @@ with st.container(border=True):
         sale_mode = st.selectbox("Canal de venta", SALE_OPTIONS, index=0)
         sell_surplus = st.checkbox("Vender excedentes", value=True)
     with c4:
-        st.markdown("**Bonificaciones de cuenta / HQ**")
         production_bonus_pct_manual = st.number_input(
-            "Bonus producción cuenta/HQ (%)",
+            "Bonus de producción (%)",
             min_value=-90.0,
             max_value=300.0,
             value=float(config_raw.get("bono_produccion_pct", 0.0)),
             step=1.0,
             format="%.2f",
-            help="Cargá solo el extra de tu cuenta/HQ. Los datos base salen de productos_v1.csv y no deben tener bonos incluidos.",
+            help="Cargá solamente el bonus extra que tengas en el juego.",
         )
         retail_bonus_pct_manual = st.number_input(
-            "Bonus venta retail cuenta/HQ (%)",
+            "Bonus de venta retail (%)",
             min_value=-90.0,
             max_value=300.0,
             value=float(config_raw.get("bono_venta_retail_pct", 0.0)),
             step=1.0,
             format="%.2f",
-            help="Cargá solo el extra de venta retail de tu cuenta/HQ. No modifica producción normal.",
+            help="Cargá solamente el bonus extra de venta retail que tengas en el juego.",
         )
 
     market_fee = market_fee_pct / 100.0
     contract_discount = contract_discount_pct / 100.0
 
-    st.caption("Regla de carga: productos_v1.csv y edificios_v1.csv guardan valores BASE sin bonus. Las bonificaciones se cargan aparte y se aplican arriba de esos valores.")
-
     st.markdown("**Directores**")
-    st.caption("Cargá los directores tal como aparecen en el juego: puesto, puntos y salario diario. Los efectos exactos se pueden copiar manualmente en las columnas de reducción/bono hasta que automaticemos la fórmula completa.")
     directores_df = st.data_editor(
         st.session_state["directores"],
         use_container_width=True,
@@ -409,7 +403,6 @@ with st.container(border=True):
     d3.metric("Reducción admin cargada", f"{director_admin_reduction_pct:.2f}%".replace(".", ","))
     d4.metric("Bonus producción total", f"{production_bonus_pct_total:.2f}%".replace(".", ","))
     d5.metric("Multiplicador aplicado", f"x{production_mult:.4f}".replace(".", ","))
-    st.caption(f"Regla fija de contrato cargada: transporte = {CONTRACT_TRANSPORT_FACTOR*100:.0f}% del transporte de mercado. No es editable.")
 
 # Productos editables
 products = st.session_state["productos_editados"].copy()
