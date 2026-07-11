@@ -1,5 +1,36 @@
 edificio,producto_principal,salario_h,produccion_h,electricidad_necesaria_h,valor_referencia_n1,costo_n1,tiempo_n1_h,notas
-Central eléctrica,Electricidad,414,2592.87,0,51750,56761,3,Produce electricidad; no consume insumos físicos.
-Embalse de agua,Agua,345,1642.86,328.57,20700,22666,2,Produce agua usando electricidad propia.
-Granja,Varios cultivos,104,0,0,6900,7555,1,Produce cultivos; cada cultivo tiene producción e insumos propios.
-Depósito de Embarque,Transporte,311,3206.011,0,51750,56785,3,Produce unidades de transporte usando electricidad y diésel.
+Aerospace Electronics,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Aerospace Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Automotive R&D,Investigación automotriz,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Bakery,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Beverage Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Breeding Laboratory,Investigación genética,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Car Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Catering,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Central eléctrica,Electricidad,414,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Chemistry Laboratory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Concrete Plant,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Construction Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Depósito de Embarque,Transporte,311,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Electronics Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Embalse de agua,Agua,345,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Fashion & Design,Investigación de moda,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Fashion Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Food Processing Plant,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+General Contractor,Unidades de construcción,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Granja,Varios productos,104,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Hangar,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Kitchen,Recetas,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Mill,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Mine,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Oil Rig,Petróleo crudo,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Physics Laboratory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Plant Research Center,Investigación vegetal,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Propulsion Factory,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Quarry,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Ranch,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Refinery,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Slaughterhouse,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Software R&D,Software,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.
+Vertical Integration Facility,Varios productos,0,0,0,0,0,0,Catálogo ampliado. Salario/costo de edificio pendiente verificar salvo edificios base.

@@ -1,17 +1,139 @@
-kind,producto,edificio,produccion_h,agua_necesaria_h,semillas_necesarias_h,electricidad_necesaria_h,diesel_necesario_h,transporte_mercado,precio_default,costo_manual
-13,Transporte,Depósito de Embarque,3206.011,0,0,33.747484,16.873742,0,0.389,0
-1,Electricidad,Central eléctrica,2592.87,0,0,0,0,0,0.277,0
-2,Agua,Embalse de agua,1642.86,0,0,328.57,0,0,0.377,0
-66,Semillas,Granja,898.62,89.8615,0,0,0,0.1,0.27,0
-3,Manzanas,Granja,204.23,612.693,204.2,0,0,1,2.7,0
-4,Naranjas,Granja,187.9,563.676,187.9,0,0,1,2.7,0
-5,Uvas,Granja,163.39,653.54,163.4,0,0,1,3.4,0
-6,Grano,Granja,816.92,408.4615,816.9,0,0,0.1,0.745,0
-40,Algodón,Granja,261.42,261.4,261.4,0,0,0.5,1.57,0
-72,Caña de azúcar,Granja,635.54,1906.614,635.5,0,0,0.1,1.72,0
-106,Madera,Granja,77.61,310.432,77.6,0,0,1,4.15,0
-118,Granos de café,Granja,416.63,208.3155,416.6,0,0,0.1,0.805,0
-120,Verduras,Granja,285.92,571.846,1429.615,0,0,0.2,2.7,0
-136,Cacao,Granja,171.55,171.6,171.6,0,0,0.1,1.68,0
-12,Diésel,,0,0,0,0,0,0,40.75,0
-114,Robots,,0,0,0,0,0,0,260.0,0
+kind,producto,edificio,produccion_h,agua_necesaria_h,semillas_necesarias_h,electricidad_necesaria_h,diesel_necesario_h,transporte_mercado,precio_default,costo_manual,nombre_original,estado_receta
+81,Cabina,Aerospace Electronics,2.26315456482298,0.0,0,0.0,0.0,0,0.0,0,Cockpit,pendiente_receta_avanzada
+79,Componentes electrónicos avanzados,Aerospace Electronics,1.8367631250737224,0.0,0,0.0,0.0,0,0.0,0,High-grade E-comps,pendiente_receta_avanzada
+80,Computadora de vuelo,Aerospace Electronics,2.26315456482298,0.0,0,0.0,0.0,0,0.0,0,Flight computer,pendiente_receta_avanzada
+82,Control de actitud,Aerospace Electronics,2.715785477787575,0.0,0,0.0,0.0,0,0.0,0,Attitude Control,pendiente_receta_avanzada
+78,Ala,Aerospace Factory,8.109415592207736,0.0,0,0.0,0.0,0,0.0,0,Wing,pendiente_receta_avanzada
+87,Escudo térmico,Aerospace Factory,12.013949025492945,0.0,0,0.0,0.0,0,0.0,0,Heat Shield,pendiente_receta_avanzada
+77,Fuselaje,Aerospace Factory,3.3038359820105594,0.0,0,0.0,0.0,0,0.0,0,Fuselage,pendiente_receta_avanzada
+92,Propulsor orbital,Aerospace Factory,1.501743628186618,0.0,0,0.0,0.0,0,0.0,0,Orbital Booster,pendiente_receta_avanzada
+90,Segunda etapa suborbital,Aerospace Factory,3.003487256373236,0.0,0,0.0,0.0,0,0.0,0,Sub-orbital 2nd Stage,pendiente_receta_avanzada
+93,Starship,Aerospace Factory,0.3003487256373235,0.0,0,0.0,0.0,0,0.0,0,Starship,pendiente_receta_avanzada
+58,Investigación automotriz,Automotive R&D,4.19080101478387,0.0,0,0.0,0.0,0,0.0,0,Automotive Research,pendiente_receta_avanzada
+127,Pizza congelada,Bakery,9.183815625368611,0.0,0,0.0,0.0,0,0.0,0,Frozen Pizza,pendiente_receta_avanzada
+123,Tarta de manzana,Bakery,5.979001062993257,0.0,0,0.0,0.0,0,0.0,0,Apple Pie,pendiente_receta_avanzada
+132,Cócteles,Beverage Factory,0.5214347857459737,0.0,0,0.0,0.0,0,0.0,0,Cocktails,pendiente_receta_avanzada
+126,Ginger beer,Beverage Factory,73.12838537256573,0.0,0,0.0,0.0,0,0.0,0,Ginger Beer,pendiente_receta_avanzada
+124,Jugo de naranja,Beverage Factory,91.41048171570716,0.0,0,0.0,0.0,0,0.0,0,Orange Juice,pendiente_receta_avanzada
+125,Sidra de manzana,Beverage Factory,36.56419268628287,0.0,0,0.0,0.0,0,0.0,0,Apple Cider,pendiente_receta_avanzada
+33,Investigación genética,Breeding Laboratory,3.850417083165344,0.0,0,0.0,0.0,0,0.0,0,Breeding Research,pendiente_receta_avanzada
+56,Auto de lujo,Car Factory,1.9930003543310857,0.0,0,0.0,0.0,0,0.0,0,Luxury Car,pendiente_receta_avanzada
+55,Auto económico,Car Factory,13.9510024803176,0.0,0,0.0,0.0,0,0.0,0,Economy Car,pendiente_receta_avanzada
+54,Auto eléctrico de lujo,Car Factory,3.9860007086621714,0.0,0,0.0,0.0,0,0.0,0,Luxury E-car,pendiente_receta_avanzada
+53,Auto eléctrico económico,Car Factory,19.930003543310857,0.0,0,0.0,0.0,0,0.0,0,Economy E-car,pendiente_receta_avanzada
+57,Camión,Car Factory,4.783200850394605,0.0,0,0.0,0.0,0,0.0,0,Truck,pendiente_receta_avanzada
+51,Carrocería,Car Factory,23.91600425197303,0.0,0,0.0,0.0,0,0.0,0,Car body,pendiente_receta_avanzada
+47,Computadora de abordo,Car Factory,13.775723438052918,0.0,0,0.0,0.0,0,0.0,0,On-board computer,pendiente_receta_avanzada
+50,Interior básico,Car Factory,31.88800566929737,0.0,0,0.0,0.0,0,0.0,0,Basic interior,pendiente_receta_avanzada
+49,Interior de lujo,Car Factory,19.930003543310857,0.0,0,0.0,0.0,0,0.0,0,Luxury car interior,pendiente_receta_avanzada
+52,Motor de combustión,Car Factory,5.596646735354556,0.0,0,0.0,0.0,0,0.0,0,Combustion Engine,pendiente_receta_avanzada
+48,Motor eléctrico,Car Factory,30.781557044450057,0.0,0,0.0,0.0,0,0.0,0,Electric motor,pendiente_receta_avanzada
+131,Albóndigas,Catering,1.0428695714919474,0.0,0,0.0,0.0,0,0.0,0,Meat Balls,pendiente_receta_avanzada
+142,Ensalada,Catering,2.0857391429838947,0.0,0,0.0,0.0,0,0.0,0,Salad,pendiente_receta_avanzada
+129,Hamburguesa,Catering,0.5214347857459737,0.0,0,0.0,0.0,0,0.0,0,Hamburger,pendiente_receta_avanzada
+130,Lasaña,Catering,1.564304357237921,0.0,0,0.0,0.0,0,0.0,0,Lasagna,pendiente_receta_avanzada
+143,Samosa,Catering,1.825021750110908,0.0,0,0.0,0.0,0,0.0,0,Samosa,pendiente_receta_avanzada
+1,Electricidad,Central eléctrica,2566.9447221102296,0.0,0,0.0,0.0,0,0.277,0,Power,ok_base
+113,Investigación de materiales,Chemistry Laboratory,3.42259296281364,0.0,0,0.0,0.0,0,0.0,0,Materials Research,pendiente_receta_avanzada
+34,Investigación química,Chemistry Laboratory,4.706065323868754,0.0,0,0.0,0.0,0,0.0,0,Chemistry Research,pendiente_receta_avanzada
+103,Cemento,Concrete Plant,298.4740078244799,0.0,0,0.0,0.0,0,0.0,0,Cement,pendiente_receta_avanzada
+101,Hormigón armado,Concrete Plant,188.2682203200565,0.0,0,0.0,0.0,0,0.0,0,Reinforced Concrete,pendiente_receta_avanzada
+102,Ladrillos,Concrete Plant,367.3526250147445,0.0,0,0.0,0.0,0,0.0,0,Bricks,pendiente_receta_avanzada
+112,Bulldozer,Construction Factory,5.58040099212704,0.0,0,0.0,0.0,0,0.0,0,Bulldozer,pendiente_receta_avanzada
+110,Herramientas,Construction Factory,25.996059187770413,0.0,0,0.0,0.0,0,0.0,0,Tools,pendiente_receta_avanzada
+108,Tablones,Construction Factory,115.12540497441184,0.0,0,0.0,0.0,0,0.0,0,Planks,pendiente_receta_avanzada
+109,Ventanas,Construction Factory,16.711752334995268,0.0,0,0.0,0.0,0,0.0,0,Windows,pendiente_receta_avanzada
+107,Vigas de acero,Construction Factory,129.98029593885207,0.0,0,0.0,0.0,0,0.0,0,Steel Beams,pendiente_receta_avanzada
+13,Transporte,Depósito de Embarque,3173.9508697581,0.0,0,0.010526,0.005263,0,0.389,0,Transport,ok_base
+24,Celulares,Electronics Factory,11.479769531710764,0.0,0,0.0,0.0,0,0.0,0,Smart Phones,pendiente_receta_avanzada
+21,Componentes electrónicos,Electronics Factory,41.32717031415876,0.0,0,0.0,0.0,0,0.0,0,Electronic Components,pendiente_receta_avanzada
+32,Investigación electrónica,Electronics Factory,2.4027898050985885,0.0,0,0.0,0.0,0,0.0,0,Electronics Research,pendiente_receta_avanzada
+26,Laptops,Electronics Factory,9.183815625368611,0.0,0,0.0,0.0,0,0.0,0,Laptops,pendiente_receta_avanzada
+27,Monitores,Electronics Factory,18.367631250737222,0.0,0,0.0,0.0,0,0.0,0,Monitors,pendiente_receta_avanzada
+23,Pantallas,Electronics Factory,32.14335468879014,0.0,0,0.0,0.0,0,0.0,0,Displays,pendiente_receta_avanzada
+20,Procesadores,Electronics Factory,9.183815625368611,0.0,0,0.0,0.0,0,0.0,0,Processors,pendiente_receta_avanzada
+25,Tablets,Electronics Factory,11.479769531710764,0.0,0,0.0,0.0,0,0.0,0,Tablets,pendiente_receta_avanzada
+28,Televisores,Electronics Factory,16.07167734439507,0.0,0,0.0,0.0,0,0.0,0,Televisions,pendiente_receta_avanzada
+2,Agua,Embalse de agua,1626.4285714285716,0.0,0,0.2,0.0,0,0.377,0,Water,ok_base
+43,Acero,Factory,192.5208541582672,0.0,0,0.0,0.0,0,0.0,0,Steel,pendiente_receta_avanzada
+18,Aluminio,Factory,119.79075369847736,0.0,0,0.0,0.0,0,0.0,0,Aluminium,pendiente_receta_avanzada
+22,Baterías,Factory,25.255492969763683,0.0,0,0.0,0.0,0,0.0,0,Batteries,pendiente_receta_avanzada
+76,Compuesto de carbono,Factory,68.45185925627278,0.0,0,0.0,0.0,0,0.0,0,Carbon Composite,pendiente_receta_avanzada
+75,Fibra de carbono,Factory,245.10570091326392,0.0,0,0.0,0.0,0,0.0,0,Carbon Fibers,pendiente_receta_avanzada
+69,Lingotes de oro,Factory,29.947688424619344,0.0,0,0.0,0.0,0,0.0,0,Golden Bars,pendiente_receta_avanzada
+19,Plástico,Factory,204.2547507610533,0.0,0,0.0,0.0,0,0.0,0,Plastic,pendiente_receta_avanzada
+17,Químicos,Factory,213.91206017585245,0.0,0,0.0,0.0,0,0.0,0,Chemicals,pendiente_receta_avanzada
+45,Vidrio,Factory,128.34723610551148,0.0,0,0.0,0.0,0,0.0,0,Glass,pendiente_receta_avanzada
+59,Investigación de moda,Fashion & Design,6.776201204725691,0.0,0,0.0,0.0,0,0.0,0,Fashion Research,pendiente_receta_avanzada
+64,Bolsos de mano,Fashion Factory,67.81580657679238,0.0,0,0.0,0.0,0,0.0,0,Handbags,pendiente_receta_avanzada
+71,Collar,Fashion Factory,41.44299290803979,0.0,0,0.0,0.0,0,0.0,0,Necklace,pendiente_receta_avanzada
+61,Guantes,Fashion Factory,143.16670277322837,0.0,0,0.0,0.0,0,0.0,0,Gloves,pendiente_receta_avanzada
+70,Reloj de lujo,Fashion Factory,18.837724049109,0.0,0,0.0,0.0,0,0.0,0,Luxury Watch,pendiente_receta_avanzada
+60,Ropa interior,Fashion Factory,165.77197163215916,0.0,0,0.0,0.0,0,0.0,0,Underwear,pendiente_receta_avanzada
+63,Tacones,Fashion Factory,97.95616505536675,0.0,0,0.0,0.0,0,0.0,0,Stilletto Heel,pendiente_receta_avanzada
+41,Tela,Fashion Factory,241.12286782859516,0.0,0,0.0,0.0,0,0.0,0,Fabric,pendiente_receta_avanzada
+62,Vestidos,Fashion Factory,150.70179239287197,0.0,0,0.0,0.0,0,0.0,0,Dresses,pendiente_receta_avanzada
+65,Zapatillas,Fashion Factory,173.30706125180276,0.0,0,0.0,0.0,0,0.0,0,Sneakers,pendiente_receta_avanzada
+141,Aceite vegetal,Food Processing Plant,36.73526250147445,0.0,0,0.0,0.0,0,0.0,0,Vegetable Oil,pendiente_receta_avanzada
+135,Azúcar,Food Processing Plant,41.32717031415876,0.0,0,0.0,0.0,0,0.0,0,Sugar,pendiente_receta_avanzada
+119,Café molido,Food Processing Plant,22.95953906342153,0.0,0,0.0,0.0,0,0.0,0,Coffee Powder,pendiente_receta_avanzada
+140,Chocolate,Food Processing Plant,3.214335468879014,0.0,0,0.0,0.0,0,0.0,0,Chocolate,pendiente_receta_avanzada
+139,Forraje,Food Processing Plant,284.69828438642696,0.0,0,0.0,0.0,0,0.0,0,Fodder,pendiente_receta_avanzada
+134,Manteca,Food Processing Plant,13.775723438052918,0.0,0,0.0,0.0,0,0.0,0,Butter,pendiente_receta_avanzada
+122,Queso,Food Processing Plant,5.510289375221167,0.0,0,0.0,0.0,0,0.0,0,Cheese,pendiente_receta_avanzada
+138,Salsa,Food Processing Plant,0.7821521786189605,0.0,0,0.0,0.0,0,0.0,0,Sauce,pendiente_receta_avanzada
+111,Unidades de construcción,General Contractor,0.9857142857142858,0.0,0,0.0,0.0,0,0.0,0,Construction Units,pendiente_receta_avanzada
+40,Algodón,Granja,258.80120543197864,1.0,1,0.0,0.0,0,1.52,0,Cotton,ok_base
+136,Cacao,Granja,169.83829106473598,1.0,1,0.0,0.0,0,1.71,0,Cocoa,ok_base
+72,Caña de azúcar,Granja,647.0030135799466,3.0,1,0.0,0.0,0,1.66,0,Sugar Cane,ok_base
+6,Grano,Granja,808.7537669749333,0.5,1,0.0,0.0,0,0.71,0,Grain,ok_base
+118,Granos de café,Granja,412.464421157216,0.5,1,0.0,0.0,0,0.77,0,Coffee Beans,ok_base
+106,Madera,Granja,76.83160786261867,4.0,1,0.0,0.0,0,4.23,0,Wood,ok_base
+3,Manzanas,Granja,202.1884417437333,3.0,1,0.0,0.0,0,2.7,0,Apples,ok_base
+4,Naranjas,Granja,186.01336640423463,3.0,1,0.0,0.0,0,2.63,0,Oranges,ok_base
+66,Semillas,Granja,889.6291436724266,0.1,0,0.0,0.0,0,0.267,0,Seeds,ok_base
+5,Uvas,Granja,161.75075339498665,4.0,1,0.0,0.0,0,3.15,0,Grapes,ok_base
+120,Verduras,Granja,283.06381844122666,2.0,5,0.0,0.0,0,2.63,0,Vegetables,ok_base
+97,Avión monomotor,Hangar,1.475993215213382,0.0,0,0.0,0.0,0,0.0,0,Single Engine Plane,pendiente_receta_avanzada
+96,Jet de lujo,Hangar,0.1686849388815293,0.0,0,0.0,0.0,0,0.0,0,Luxury Jet,pendiente_receta_avanzada
+95,Jumbo Jet,Hangar,0.0632568520805735,0.0,0,0.0,0.0,0,0.0,0,Jumbo Jet,pendiente_receta_avanzada
+98,Quadcopter,Hangar,12.447350106526388,0.0,0,0.0,0.0,0,0.0,0,Quadcopter,pendiente_receta_avanzada
+145,Recetas,Kitchen,3.806048058308965,0.0,0,0.0,0.0,0,0.0,0,Recipes,pendiente_receta_avanzada
+67,Galletas,Mill,222.46854258288656,0.0,0,0.0,0.0,0,0.0,0,Crackers,pendiente_receta_avanzada
+133,Harina,Mill,87.24624844100181,0.0,0,0.0,0.0,0,0.0,0,Flour,pendiente_receta_avanzada
+137,Masa,Mill,11.958002125986514,0.0,0,0.0,0.0,0,0.0,0,Dough,pendiente_receta_avanzada
+121,Pan,Mill,11.958002125986514,0.0,0,0.0,0.0,0,0.0,0,Bread,pendiente_receta_avanzada
+128,Pasta,Mill,18.367631250737222,0.0,0,0.0,0.0,0,0.0,0,Pasta,pendiente_receta_avanzada
+15,Bauxita,Mine,96.5218784793032,0.0,0,0.0,0.0,0,0.0,0,Bauxite,ok_base
+42,Mineral de hierro,Mine,181.68824184339425,0.0,0,0.0,0.0,0,0.0,0,Iron Ore,ok_base
+68,Mineral de oro,Mine,56.7775755760607,0.0,0,0.0,0.0,0,0.0,0,Gold Ore,ok_base
+14,Minerales,Mine,119.23290870972748,0.0,0,0.0,0.0,0,0.0,0,Minerals,ok_base
+16,Silicio,Mine,154.01668332661376,0.0,0,0.0,0.0,0,0.0,0,Silicon,ok_base
+10,Petróleo crudo,Oil Rig,41.52052427246143,0.0,0,0.0,0.0,0,0.0,0,Crude Oil,ok_base
+100,Investigación aeroespacial,Physics Laboratory,0.3460043689371785,0.0,0,0.0,0.0,0,0.0,0,Aerospace Research,pendiente_receta_avanzada
+30,Investigación energética,Physics Laboratory,3.3038359820105594,0.0,0,0.0,0.0,0,0.0,0,Energy Research,pendiente_receta_avanzada
+31,Investigación minera,Physics Laboratory,3.003487256373236,0.0,0,0.0,0.0,0,0.0,0,Mining Research,pendiente_receta_avanzada
+29,Investigación vegetal,Plant Research Center,4.783200850394605,0.0,0,0.0,0.0,0,0.0,0,Plant Research,pendiente_receta_avanzada
+86,Motor de cohete,Propulsion Factory,0.2798323367677278,0.0,0,0.0,0.0,0,0.0,0,Rocket Engine,pendiente_receta_avanzada
+88,Motor iónico,Propulsion Factory,0.5596646735354556,0.0,0,0.0,0.0,0,0.0,0,Ion Drive,pendiente_receta_avanzada
+89,Motor jet,Propulsion Factory,0.8394970103031834,0.0,0,0.0,0.0,0,0.0,0,Jet Engine,pendiente_receta_avanzada
+85,Propulsor sólido,Propulsion Factory,0.2798323367677278,0.0,0,0.0,0.0,0,0.0,0,Solid Fuel Booster,pendiente_receta_avanzada
+84,Tanque de propelente,Propulsion Factory,4.505230884559854,0.0,0,0.0,0.0,0,0.0,0,Propellant Tank,pendiente_receta_avanzada
+104,Arcilla,Quarry,1078.7739359451534,0.0,0,0.0,0.0,0,0.0,0,Clay,ok_base
+44,Arena,Quarry,1419.4393894015177,0.0,0,0.0,0.0,0,0.0,0,Sand,ok_base
+105,Piedra caliza,Quarry,794.8860580648499,0.0,0,0.0,0.0,0,0.0,0,Limestone,ok_base
+116,Cerdos,Ranch,82.88598581607958,0.0,0,0.0,0.0,0,0.0,0,Pigs,pendiente_receta_avanzada
+9,Huevos,Ranch,316.4737640250312,0.0,0,0.0,0.0,0,0.0,0,Eggs,pendiente_receta_avanzada
+117,Leche,Ranch,120.56143391429757,0.0,0,0.0,0.0,0,0.0,0,Milk,pendiente_receta_avanzada
+115,Vacas,Ranch,37.67544809821799,0.0,0,0.0,0.0,0,0.0,0,Cows,pendiente_receta_avanzada
+83,Combustible de cohete,Refinery,77.98817756331124,0.0,0,0.0,0.0,0,0.0,0,Rocket Fuel,pendiente_receta_avanzada
+12,Diésel,Refinery,115.12540497441184,0.0,0,0.0,0.0,0,0.7,0,Diesel,ok_base
+73,Ethanol,Refinery,60.94032114380477,0.0,0,0.0,0.0,0,0.0,0,Ethanol,pendiente_receta_avanzada
+74,Methane,Refinery,55.36069902994857,0.0,0,0.0,0.0,0,0.0,0,Methane,pendiente_receta_avanzada
+11,Nafta,Refinery,111.41168223330178,0.0,0,0.0,0.0,0,0.0,0,Petrol,pendiente_receta_avanzada
+7,Bife,Slaughterhouse,25.669447221102292,0.0,0,0.0,0.0,0,0.0,0,Steak,pendiente_receta_avanzada
+46,Cuero,Slaughterhouse,30.14035847857439,0.0,0,0.0,0.0,0,0.0,0,Leather,pendiente_receta_avanzada
+8,Salchichas,Slaughterhouse,77.00834166330688,0.0,0,0.0,0.0,0,0.0,0,Sausages,pendiente_receta_avanzada
+35,Software,Software R&D,5.706625787109148,0.0,0,0.0,0.0,0,0.0,0,Software,pendiente_receta_avanzada
+94,BFR,Vertical Integration Facility,0.2108561736019117,0.0,0,0.0,0.0,0,0.0,0,BFR,pendiente_receta_avanzada
+91,Cohete suborbital,Vertical Integration Facility,0.6325685208057351,0.0,0,0.0,0.0,0,0.0,0,Sub-orbital Rocket,pendiente_receta_avanzada

@@ -1,0 +1,12 @@
+Sim Market Lab V2.26 - catálogo ampliado
+
+Qué cambia:
+- Agrega catálogo amplio de 138 productos/materiales a productos_v1.csv y fallback interno.
+- Agrega 35 edificios productivos/no-retail a edificios_v1.csv y fallback interno.
+- Excluye tiendas retail, Sales Offices, Restaurant, Castle, Park, Lake, Bank y Launch Pad.
+- Mantiene streamlit_app.py como una sola línea válida para evitar problemas de saltos de línea en GitHub.
+
+Limitación importante:
+- La app actual calcula correctamente insumos del motor base: Electricidad, Agua, Semillas y Diésel.
+- Para productos industriales avanzados, el producto aparece para simular líneas, pero la receta queda marcada como pendiente hasta pasar el motor a insumos genéricos.
+- Los salarios/costos de construcción de edificios nuevos están pendientes de verificación salvo edificios base.
