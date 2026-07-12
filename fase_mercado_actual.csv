@@ -1,143 +1,143 @@
 collected_at_utc,kind,name,quality,price,points,min_price,max_price,avg_price,percentile,trend,phase
-2026-07-12T19:20:49Z,141,Aceite vegetal,0,36.5,55,35.0,36.75,36.409091,78.18,lateral,caro
-2026-07-12T19:20:49Z,43,Acero,0,12.9,55,11.8,13.2,12.574545,92.73,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,144,Adorno de navidad,0,17.5,55,17.1,18.0,17.505455,50.91,bajando,normal
-2026-07-12T19:20:49Z,2,Agua,0,0.386,55,0.369,0.395,0.381691,83.64,lateral,caro
-2026-07-12T19:20:49Z,78,Ala,0,1970.0,55,1930.0,2010.0,1980.727273,23.64,lateral,bajo-normal
-2026-07-12T19:20:49Z,131,Albóndigas,0,2360.0,55,2360.0,2440.0,2395.636364,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,40,Algodón,0,1.55,55,1.41,1.63,1.542,50.91,bajando,normal
-2026-07-12T19:20:49Z,18,Aluminio,0,20.5,55,20.0,22.0,21.05,18.18,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,104,Arcilla,0,1.02,55,1.0,1.1,1.043091,23.64,lateral,bajo-normal
-2026-07-12T19:20:49Z,44,Arena,0,1.29,55,1.24,1.39,1.323091,18.18,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,135,Azúcar,0,21.25,55,17.8,23.0,21.364545,45.45,bajando,normal
-2026-07-12T19:20:49Z,69,Barras de oro,0,6400.0,55,6325.0,6675.0,6474.090909,21.82,bajando,bajo-normal
-2026-07-12T19:20:49Z,22,Baterías,0,90.0,55,88.5,93.0,89.981818,60.0,lateral,normal
-2026-07-12T19:20:49Z,15,Bauxita,0,11.1,55,9.9,11.2,10.758182,94.55,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,7,Bistec,0,41.0,55,40.0,44.75,42.627273,5.45,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,102,Bloques,0,2.7,55,2.7,2.95,2.844545,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,64,Bolsos de mano,0,44.5,55,39.0,47.5,45.827273,9.09,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,81,Cabina,0,5525.0,55,5450.0,5975.0,5639.545455,20.0,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,136,Cacao,0,1.49,55,1.4,1.83,1.641636,5.45,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,119,Café en polvo,0,36.25,55,32.0,36.5,34.6,98.18,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,146,Calabaza,0,12.5,55,11.9,13.1,12.203636,96.36,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,147,Calabaza de Halloween,0,47.5,55,46.25,47.75,46.759091,98.18,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,105,Caliza,0,1.59,55,1.49,1.71,1.621273,27.27,lateral,bajo-normal
-2026-07-12T19:20:49Z,57,Camión,0,5575.0,55,5500.0,5850.0,5683.636364,14.55,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,51,Carrocería,0,790.0,55,760.0,800.0,789.181818,67.27,lateral,normal
-2026-07-12T19:20:49Z,72,Caña de azúcar,0,1.65,55,1.5,1.76,1.637818,69.09,bajando,normal
-2026-07-12T19:20:49Z,103,Cemento,0,6.7,55,6.5,7.1,6.774545,49.09,lateral,normal
-2026-07-12T19:20:49Z,116,Cerdos,0,42.75,55,42.5,45.25,44.368182,5.45,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,126,Cerveza de jengibre,0,55.0,55,51.0,57.0,54.618182,63.64,subiendo,normal
-2026-07-12T19:20:49Z,140,Chocolate,0,258.0,55,248.0,298.0,264.254545,30.91,bajando,bajo-normal
-2026-07-12T19:20:49Z,56,Coche de lujo,0,4290.0,55,4290.0,4460.0,4385.636364,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,55,Coche económico,0,2220.0,55,2130.0,2330.0,2260.363636,5.45,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,71,Collar,0,1600.0,55,1580.0,1670.0,1631.818182,10.91,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,83,Combustible para cohetes,0,29.0,55,28.5,33.0,30.9,3.64,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,21,Componentes electrónicos,0,55.5,55,55.5,60.0,58.718182,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,76,Compuesto de carbono,0,63.0,55,58.5,65.5,62.954545,58.18,lateral,normal
-2026-07-12T19:20:49Z,47,Computadora a bordo,0,450.0,55,422.0,464.0,443.272727,78.18,bajando,caro
-2026-07-12T19:20:49Z,80,Computadora de vuelo,0,5100.0,55,4940.0,5200.0,5068.363636,72.73,subiendo,caro
-2026-07-12T19:20:49Z,101,Concreto reforzado,0,204.0,55,196.0,208.0,201.8,92.73,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,151,Conejo de Pascua,0,228.0,55,196.0,236.0,220.0,87.27,subiendo,caro
-2026-07-12T19:20:49Z,82,Control de actitud,0,1630.0,55,1600.0,1630.0,1619.272727,100.0,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,155,Cream egg,0,134.0,55,120.0,135.0,132.090909,90.91,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,98,Cuadricóptero,0,905.0,55,750.0,905.0,884.818182,100.0,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,46,Cuero,0,28.5,55,25.0,28.75,26.722727,94.55,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,132,Cócteles,0,2270.0,55,2200.0,2640.0,2342.545455,23.64,bajando,bajo-normal
-2026-07-12T19:20:49Z,148,Disfraz de bruja,0,35.75,55,33.75,36.25,34.804545,89.09,subiendo,caro
-2026-07-12T19:20:49Z,12,Diésel,0,42.0,55,40.25,42.25,41.204545,98.18,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,152,Dulces de ramadán,0,224.0,55,210.0,232.0,228.0,34.55,bajando,bajo-normal
-2026-07-12T19:20:49Z,54,E-car de lujo,0,6350.0,55,6225.0,6550.0,6381.818182,30.91,lateral,bajo-normal
-2026-07-12T19:20:49Z,53,E-car económico,0,3430.0,55,3000.0,3450.0,3349.818182,96.36,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,1,Electricidad,0,0.271,55,0.266,0.277,0.272109,47.27,lateral,normal
-2026-07-12T19:20:49Z,79,Electrónicos de alto grado,0,900.0,55,845.0,920.0,889.636364,78.18,subiendo,caro
-2026-07-12T19:20:49Z,142,Ensalada,0,940.0,55,815.0,995.0,854.363636,94.55,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,87,Escudo térmico,0,462.0,55,462.0,480.0,468.727273,7.27,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,73,Etanol,0,27.5,55,26.0,29.0,27.254545,78.18,lateral,caro
-2026-07-12T19:20:49Z,112,Excavadora,0,2330.0,55,2320.0,2420.0,2352.0,25.45,lateral,bajo-normal
-2026-07-12T19:20:49Z,75,Fibras de carbono,0,6.7,55,6.0,7.1,6.725455,50.91,lateral,normal
-2026-07-12T19:20:49Z,139,Forraje,0,11.3,55,10.2,11.5,10.976364,87.27,lateral,caro
-2026-07-12T19:20:49Z,77,Fuselaje,0,2760.0,55,2580.0,2920.0,2794.363636,25.45,lateral,bajo-normal
-2026-07-12T19:20:49Z,11,Gasolina,0,41.0,55,39.5,41.75,40.822727,78.18,lateral,caro
-2026-07-12T19:20:49Z,6,Grano,0,0.73,55,0.675,0.745,0.724,70.91,lateral,caro
-2026-07-12T19:20:49Z,118,Granos de café,0,0.735,55,0.64,0.84,0.759909,23.64,bajando,bajo-normal
-2026-07-12T19:20:49Z,61,Guantes,0,19.7,55,18.7,20.75,19.571818,72.73,bajando,caro
-2026-07-12T19:20:49Z,129,Hamburguesa,0,2200.0,55,2060.0,2290.0,2154.727273,90.91,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,133,Harina,0,14.7,55,12.0,17.7,15.523636,10.91,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,153,Helado de chocolate,0,83.0,55,67.0,121.0,81.145455,67.27,bajando,normal
-2026-07-12T19:20:49Z,154,Helado de manzana,0,71.5,55,63.0,103.0,77.609091,41.82,bajando,normal
-2026-07-12T19:20:49Z,110,Herramientas,0,198.0,55,193.0,206.0,198.363636,63.64,lateral,normal
-2026-07-12T19:20:49Z,9,Huevos,0,1.29,55,1.2,1.41,1.271273,72.73,lateral,caro
-2026-07-12T19:20:49Z,50,Interior básico,0,330.0,55,310.0,330.0,324.181818,100.0,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,49,Interior de coche de lujo,0,880.0,55,880.0,955.0,915.727273,1.82,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,100,Investigación aeroespacial,0,122.0,55,122.0,125.0,123.672727,14.55,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,29,Investigación agrícola,0,116.0,55,100.0,117.0,113.127273,98.18,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,58,Investigación automotriz,0,130.0,55,125.0,150.0,137.345455,18.18,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,113,Investigación de materiales,0,150.0,55,145.0,154.0,150.436364,49.09,lateral,normal
-2026-07-12T19:20:49Z,59,Investigación de moda,0,66.5,55,60.0,71.5,68.572727,21.82,bajando,bajo-normal
-2026-07-12T19:20:49Z,32,Investigación electrónica,0,228.0,55,224.0,238.0,232.4,16.36,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,30,Investigación energética,0,173.0,55,168.0,179.0,172.709091,67.27,lateral,normal
-2026-07-12T19:20:49Z,33,Investigación ganadera,0,127.0,55,114.0,130.0,122.8,87.27,lateral,caro
-2026-07-12T19:20:49Z,31,Investigación minera,0,193.0,55,180.0,198.0,190.090909,74.55,subiendo,caro
-2026-07-12T19:20:49Z,34,Investigación química,0,99.0,55,97.5,106.0,99.963636,49.09,lateral,normal
-2026-07-12T19:20:49Z,124,Jugo de naranja,0,35.75,55,35.0,38.75,37.304545,5.45,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,26,Laptops,0,1220.0,55,1180.0,1250.0,1219.090909,60.0,lateral,normal
-2026-07-12T19:20:49Z,130,Lasaña,0,2110.0,55,2060.0,2140.0,2104.909091,54.55,bajando,normal
-2026-07-12T19:20:49Z,117,Leche,0,9.7,55,8.7,10.1,9.716364,54.55,lateral,normal
-2026-07-12T19:20:49Z,106,Madera,0,4.3,55,3.0,4.65,4.041818,94.55,bajando,pico / oportunidad de venta
-2026-07-12T19:20:49Z,134,Mantequilla,0,59.0,55,53.5,68.5,59.072727,61.82,lateral,normal
-2026-07-12T19:20:49Z,3,Manzanas,0,2.7,55,2.3,2.95,2.608182,78.18,bajando,caro
-2026-07-12T19:20:49Z,137,Masa,0,149.0,55,121.0,156.0,128.527273,96.36,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,74,Metano,0,21.25,55,19.0,22.0,20.048182,94.55,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,42,Mineral de hierro,0,5.8,55,4.85,5.9,5.406364,96.36,subiendo,pico / oportunidad de venta
-2026-07-12T19:20:49Z,68,Mineral de oro,0,33.5,55,23.0,35.0,32.977273,72.73,subiendo,caro
-2026-07-12T19:20:49Z,14,Minerales,0,11.9,55,11.4,12.3,11.909091,61.82,bajando,normal
-2026-07-12T19:20:49Z,27,Monitores,0,570.0,55,545.0,600.0,581.363636,16.36,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,86,Motor cohete,0,11400.0,55,11100.0,12000.0,11534.545455,41.82,lateral,normal
-2026-07-12T19:20:49Z,52,Motor de combustión,0,620.0,55,610.0,660.0,631.636364,30.91,bajando,bajo-normal
-2026-07-12T19:20:49Z,89,Motor de turbina,0,4890.0,55,4890.0,5000.0,4943.090909,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,48,Motor eléctrico,0,228.0,55,196.0,236.0,229.818182,20.0,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,4,Naranjas,0,2.25,55,2.25,2.85,2.630909,1.82,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,121,Pan,0,160.0,55,144.0,160.0,147.454545,100.0,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,23,Pantallas,0,124.0,55,118.0,130.0,126.054545,21.82,lateral,bajo-normal
-2026-07-12T19:20:49Z,128,Pasta,0,59.0,55,59.0,65.5,61.754545,3.64,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,10,Petróleo,0,30.25,55,29.5,31.75,30.640909,27.27,lateral,bajo-normal
-2026-07-12T19:20:49Z,127,Pizza congelada,0,484.0,55,474.0,500.0,488.545455,10.91,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,19,Plástico,0,12.1,55,11.7,12.4,12.109091,52.73,lateral,normal
-2026-07-12T19:20:49Z,20,Procesadores,0,116.0,55,113.0,125.0,118.672727,16.36,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,88,Propulsor iónico,0,11500.0,55,11300.0,11900.0,11616.363636,32.73,bajando,bajo-normal
-2026-07-12T19:20:49Z,85,Propulsor sólido,0,7750.0,55,7750.0,7875.0,7812.272727,3.64,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,122,Queso,0,129.0,55,123.0,133.0,127.890909,76.36,lateral,caro
-2026-07-12T19:20:49Z,17,Químicos,0,15.7,55,15.1,16.1,15.605455,70.91,lateral,caro
-2026-07-12T19:20:49Z,145,Recetas,0,141.0,55,137.0,147.0,141.345455,52.73,lateral,normal
-2026-07-12T19:20:49Z,70,Reloj de lujo,0,825.0,55,805.0,845.0,826.0,61.82,lateral,normal
-2026-07-12T19:20:49Z,114,Robots,0,635.0,55,600.0,670.0,629.090909,67.27,lateral,normal
-2026-07-12T19:20:49Z,60,Ropa interior,0,6.2,55,6.0,6.9,6.558182,12.73,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,8,Salchichas,0,11.5,55,11.0,12.7,11.967273,16.36,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,138,Salsa,0,1270.0,55,1210.0,1340.0,1266.181818,65.45,lateral,normal
-2026-07-12T19:20:49Z,143,Samosa,0,745.0,55,600.0,765.0,734.909091,81.82,lateral,caro
-2026-07-12T19:20:49Z,66,Semillas,0,0.276,55,0.267,0.299,0.282818,27.27,subiendo,bajo-normal / recuperación
-2026-07-12T19:20:49Z,125,Sidra de manzana,0,25.75,55,24.5,30.0,26.390909,38.18,lateral,bajo-normal
-2026-07-12T19:20:49Z,16,Silicio,0,8.7,55,7.8,9.0,8.549091,85.45,lateral,caro
-2026-07-12T19:20:49Z,35,Software,0,96.5,55,93.0,102.0,97.681818,34.55,bajando,bajo-normal
-2026-07-12T19:20:49Z,149,Sopa de calabaza,0,895.0,55,895.0,1090.0,974.909091,1.82,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,67,Sorpresas navideñas,0,12.3,55,11.8,12.9,12.272727,76.36,lateral,caro
-2026-07-12T19:20:49Z,25,Tabletas,0,795.0,55,740.0,820.0,800.272727,36.36,lateral,bajo-normal
-2026-07-12T19:20:49Z,108,Tablones,0,9.7,55,9.0,10.0,9.752727,38.18,lateral,bajo-normal
-2026-07-12T19:20:49Z,63,Tacón,0,33.25,55,32.5,35.5,33.75,38.18,bajando,bajo-normal
-2026-07-12T19:20:49Z,84,Tanque de propelente,0,8850.0,55,8650.0,8950.0,8830.0,60.0,lateral,normal
-2026-07-12T19:20:49Z,123,Tarta de manzana,0,298.0,55,292.0,306.0,300.509091,27.27,lateral,bajo-normal
-2026-07-12T19:20:49Z,41,Tela,0,4.6,55,4.3,5.3,4.809091,20.0,bajando,barato / sobreoferta
-2026-07-12T19:20:49Z,28,Televisores,0,1000.0,55,930.0,1000.0,964.272727,100.0,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,24,Teléfonos inteligentes,0,615.0,55,515.0,635.0,612.181818,56.36,lateral,normal
-2026-07-12T19:20:49Z,13,Transporte,0,0.392,55,0.379,0.397,0.388382,89.09,lateral,caro
-2026-07-12T19:20:49Z,111,Unidades de construcción,0,2660.0,55,2590.0,2670.0,2642.181818,96.36,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,5,Uvas,0,3.45,55,2.9,3.55,3.271818,92.73,lateral,pico / oportunidad de venta
-2026-07-12T19:20:49Z,115,Vacas,0,132.0,55,127.0,137.0,131.490909,72.73,lateral,caro
-2026-07-12T19:20:49Z,109,Ventanas,0,107.0,55,104.0,110.0,107.109091,52.73,lateral,normal
-2026-07-12T19:20:49Z,120,Verduras,0,2.45,55,2.15,2.85,2.635455,10.91,lateral,barato / sobreoferta
-2026-07-12T19:20:49Z,62,Vestido,0,22.0,55,21.25,23.25,22.222727,43.64,bajando,normal
-2026-07-12T19:20:49Z,45,Vidrio,0,14.4,55,14.0,14.7,14.361818,65.45,lateral,normal
-2026-07-12T19:20:49Z,107,Vigas de acero,0,21.25,55,20.5,27.25,22.259091,27.27,subiendo,bajo-normal / recuperación
-2026-07-12T19:20:49Z,65,Zapatillas,0,15.1,55,14.0,15.7,15.043636,63.64,lateral,normal
-2026-07-12T19:20:49Z,150,Árbol,0,368.0,55,336.0,390.0,362.327273,65.45,subiendo,normal
+2026-07-12T20:11:22Z,141,Aceite vegetal,0,36.25,56,35.0,36.75,36.40625,30.36,lateral,bajo-normal
+2026-07-12T20:11:22Z,43,Acero,0,12.7,56,11.8,13.2,12.576786,66.07,subiendo,normal
+2026-07-12T20:11:22Z,144,Adorno de navidad,0,17.5,56,17.1,18.0,17.505357,51.79,bajando,normal
+2026-07-12T20:11:22Z,2,Agua,0,0.388,56,0.369,0.395,0.381804,91.07,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,78,Ala,0,1970.0,56,1930.0,2010.0,1980.535714,25.0,lateral,bajo-normal
+2026-07-12T20:11:22Z,131,Albóndigas,0,2360.0,56,2360.0,2440.0,2395.0,3.57,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,40,Algodón,0,1.52,56,1.41,1.63,1.541607,35.71,bajando,bajo-normal
+2026-07-12T20:11:22Z,18,Aluminio,0,21.25,56,20.0,22.0,21.053571,71.43,lateral,caro
+2026-07-12T20:11:22Z,104,Arcilla,0,1.02,56,1.0,1.1,1.042679,25.0,lateral,bajo-normal
+2026-07-12T20:11:22Z,44,Arena,0,1.32,56,1.24,1.39,1.323036,58.93,bajando,normal
+2026-07-12T20:11:22Z,135,Azúcar,0,20.75,56,17.8,23.0,21.353571,25.0,bajando,bajo-normal
+2026-07-12T20:11:22Z,69,Barras de oro,0,6375.0,56,6325.0,6675.0,6472.321429,16.07,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,22,Baterías,0,90.0,56,88.5,93.0,89.982143,60.71,lateral,normal
+2026-07-12T20:11:22Z,15,Bauxita,0,11.2,56,9.9,11.2,10.766071,100.0,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,7,Bistec,0,42.25,56,40.0,44.75,42.620536,39.29,lateral,bajo-normal
+2026-07-12T20:11:22Z,102,Bloques,0,2.8,56,2.7,2.95,2.84375,37.5,lateral,bajo-normal
+2026-07-12T20:11:22Z,64,Bolsos de mano,0,47.25,56,39.0,47.5,45.852679,98.21,bajando,pico / oportunidad de venta
+2026-07-12T20:11:22Z,81,Cabina,0,5500.0,56,5450.0,5975.0,5637.053571,17.86,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,136,Cacao,0,1.54,56,1.4,1.83,1.639821,16.07,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,119,Café en polvo,0,35.25,56,32.0,36.5,34.611607,76.79,subiendo,caro
+2026-07-12T20:11:22Z,146,Calabaza,0,12.4,56,11.9,13.1,12.207143,94.64,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,147,Calabaza de Halloween,0,47.5,56,46.25,47.75,46.772321,98.21,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,105,Caliza,0,1.59,56,1.49,1.71,1.620714,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,57,Camión,0,5750.0,56,5500.0,5850.0,5684.821429,73.21,lateral,caro
+2026-07-12T20:11:22Z,51,Carrocería,0,790.0,56,760.0,800.0,789.196429,67.86,lateral,normal
+2026-07-12T20:11:22Z,72,Caña de azúcar,0,1.66,56,1.5,1.76,1.638214,71.43,lateral,caro
+2026-07-12T20:11:22Z,103,Cemento,0,6.8,56,6.5,7.1,6.775,69.64,lateral,normal
+2026-07-12T20:11:22Z,116,Cerdos,0,43.75,56,42.5,45.25,44.357143,16.07,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,126,Cerveza de jengibre,0,52.5,56,51.0,57.0,54.580357,8.93,subiendo,barato / sobreoferta
+2026-07-12T20:11:22Z,140,Chocolate,0,258.0,56,248.0,298.0,264.142857,32.14,bajando,bajo-normal
+2026-07-12T20:11:22Z,56,Coche de lujo,0,4360.0,56,4290.0,4460.0,4385.178571,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,55,Coche económico,0,2230.0,56,2130.0,2330.0,2259.821429,12.5,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,71,Collar,0,1600.0,56,1580.0,1670.0,1631.25,12.5,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,83,Combustible para cohetes,0,29.75,56,28.5,33.0,30.879464,8.93,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,21,Componentes electrónicos,0,58.0,56,55.5,60.0,58.705357,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,76,Compuesto de carbono,0,62.5,56,58.5,65.5,62.946429,39.29,bajando,bajo-normal
+2026-07-12T20:11:22Z,47,Computadora a bordo,0,452.0,56,422.0,464.0,443.428571,83.93,bajando,caro
+2026-07-12T20:11:22Z,80,Computadora de vuelo,0,5075.0,56,4940.0,5200.0,5068.482143,42.86,subiendo,normal
+2026-07-12T20:11:22Z,101,Concreto reforzado,0,198.0,56,196.0,208.0,201.732143,14.29,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,151,Conejo de Pascua,0,228.0,56,196.0,236.0,220.142857,87.5,subiendo,caro
+2026-07-12T20:11:22Z,82,Control de actitud,0,1620.0,56,1600.0,1630.0,1619.285714,73.21,lateral,caro
+2026-07-12T20:11:22Z,155,Cream egg,0,134.0,56,120.0,135.0,132.125,91.07,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,98,Cuadricóptero,0,905.0,56,750.0,905.0,885.178571,100.0,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,46,Cuero,0,29.0,56,25.0,29.0,26.763393,100.0,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,132,Cócteles,0,2270.0,56,2200.0,2640.0,2341.25,25.0,bajando,bajo-normal
+2026-07-12T20:11:22Z,148,Disfraz de bruja,0,35.75,56,33.75,36.25,34.821429,89.29,subiendo,caro
+2026-07-12T20:11:22Z,12,Diésel,0,40.25,56,40.25,42.25,41.1875,3.57,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,152,Dulces de ramadán,0,224.0,56,210.0,232.0,227.928571,35.71,bajando,bajo-normal
+2026-07-12T20:11:22Z,54,E-car de lujo,0,6350.0,56,6225.0,6550.0,6381.25,32.14,lateral,bajo-normal
+2026-07-12T20:11:22Z,53,E-car económico,0,3430.0,56,3000.0,3450.0,3351.25,96.43,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,1,Electricidad,0,0.273,56,0.266,0.277,0.272125,66.07,lateral,normal
+2026-07-12T20:11:22Z,79,Electrónicos de alto grado,0,890.0,56,845.0,920.0,889.642857,51.79,subiendo,normal
+2026-07-12T20:11:22Z,142,Ensalada,0,935.0,56,815.0,995.0,855.803571,91.07,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,87,Escudo térmico,0,462.0,56,462.0,480.0,468.607143,8.93,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,73,Etanol,0,26.5,56,26.0,29.0,27.241071,17.86,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,112,Excavadora,0,2320.0,56,2320.0,2420.0,2351.428571,16.07,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,75,Fibras de carbono,0,6.7,56,6.0,7.1,6.725,51.79,lateral,normal
+2026-07-12T20:11:22Z,139,Forraje,0,11.3,56,10.2,11.5,10.982143,87.5,subiendo,caro
+2026-07-12T20:11:22Z,77,Fuselaje,0,2790.0,56,2580.0,2920.0,2794.285714,51.79,lateral,normal
+2026-07-12T20:11:22Z,11,Gasolina,0,41.0,56,39.5,41.75,40.825893,78.57,lateral,caro
+2026-07-12T20:11:22Z,6,Grano,0,0.735,56,0.675,0.745,0.724196,80.36,lateral,caro
+2026-07-12T20:11:22Z,118,Granos de café,0,0.755,56,0.64,0.84,0.759821,50.0,bajando,normal
+2026-07-12T20:11:22Z,61,Guantes,0,19.0,56,18.7,20.75,19.561607,10.71,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,129,Hamburguesa,0,2200.0,56,2060.0,2290.0,2155.535714,91.07,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,133,Harina,0,15.4,56,12.0,17.7,15.521429,55.36,bajando,normal
+2026-07-12T20:11:22Z,153,Helado de chocolate,0,85.0,56,67.0,121.0,81.214286,71.43,bajando,caro
+2026-07-12T20:11:22Z,154,Helado de manzana,0,74.0,56,63.0,103.0,77.544643,50.0,bajando,normal
+2026-07-12T20:11:22Z,110,Herramientas,0,197.0,56,193.0,206.0,198.339286,46.43,lateral,normal
+2026-07-12T20:11:22Z,9,Huevos,0,1.29,56,1.2,1.41,1.271607,73.21,lateral,caro
+2026-07-12T20:11:22Z,50,Interior básico,0,330.0,56,310.0,330.0,324.285714,100.0,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,49,Interior de coche de lujo,0,885.0,56,880.0,955.0,915.178571,8.93,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,100,Investigación aeroespacial,0,122.0,56,122.0,125.0,123.642857,16.07,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,29,Investigación agrícola,0,115.0,56,100.0,117.0,113.160714,78.57,lateral,caro
+2026-07-12T20:11:22Z,58,Investigación automotriz,0,130.0,56,125.0,150.0,137.214286,19.64,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,113,Investigación de materiales,0,150.0,56,145.0,154.0,150.428571,50.0,lateral,normal
+2026-07-12T20:11:22Z,59,Investigación de moda,0,65.0,56,60.0,71.5,68.508929,12.5,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,32,Investigación electrónica,0,226.0,56,224.0,238.0,232.285714,3.57,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,30,Investigación energética,0,177.0,56,168.0,179.0,172.785714,98.21,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,33,Investigación ganadera,0,126.0,56,114.0,130.0,122.857143,78.57,lateral,caro
+2026-07-12T20:11:22Z,31,Investigación minera,0,192.0,56,180.0,198.0,190.125,71.43,lateral,caro
+2026-07-12T20:11:22Z,34,Investigación química,0,98.0,56,97.5,106.0,99.928571,17.86,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,124,Jugo de naranja,0,35.75,56,35.0,38.75,37.276786,7.14,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,26,Laptops,0,1230.0,56,1180.0,1250.0,1219.285714,76.79,lateral,caro
+2026-07-12T20:11:22Z,130,Lasaña,0,2130.0,56,2060.0,2140.0,2105.357143,92.86,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,117,Leche,0,9.8,56,8.7,10.1,9.717857,69.64,lateral,normal
+2026-07-12T20:11:22Z,106,Madera,0,4.25,56,3.0,4.65,4.045536,92.86,bajando,pico / oportunidad de venta
+2026-07-12T20:11:22Z,134,Mantequilla,0,60.0,56,53.5,68.5,59.089286,64.29,lateral,normal
+2026-07-12T20:11:22Z,3,Manzanas,0,2.65,56,2.3,2.95,2.608929,62.5,bajando,normal
+2026-07-12T20:11:22Z,137,Masa,0,150.0,56,121.0,156.0,128.910714,96.43,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,74,Metano,0,21.0,56,19.0,22.0,20.065179,91.07,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,42,Mineral de hierro,0,5.9,56,4.85,5.9,5.415179,100.0,subiendo,pico / oportunidad de venta
+2026-07-12T20:11:22Z,68,Mineral de oro,0,33.5,56,23.0,35.0,32.986607,73.21,subiendo,caro
+2026-07-12T20:11:22Z,14,Minerales,0,12.1,56,11.4,12.3,11.9125,85.71,lateral,caro
+2026-07-12T20:11:22Z,27,Monitores,0,570.0,56,545.0,600.0,581.160714,17.86,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,86,Motor cohete,0,11300.0,56,11100.0,12000.0,11530.357143,25.0,lateral,bajo-normal
+2026-07-12T20:11:22Z,52,Motor de combustión,0,625.0,56,610.0,660.0,631.517857,37.5,bajando,bajo-normal
+2026-07-12T20:11:22Z,89,Motor de turbina,0,4900.0,56,4890.0,5000.0,4942.321429,8.93,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,48,Motor eléctrico,0,228.0,56,196.0,236.0,229.785714,21.43,lateral,bajo-normal
+2026-07-12T20:11:22Z,4,Naranjas,0,2.65,56,2.25,2.85,2.63125,60.71,lateral,normal
+2026-07-12T20:11:22Z,121,Pan,0,160.0,56,144.0,160.0,147.678571,100.0,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,23,Pantallas,0,126.0,56,118.0,130.0,126.053571,51.79,lateral,normal
+2026-07-12T20:11:22Z,128,Pasta,0,59.0,56,59.0,65.5,61.705357,5.36,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,10,Petróleo,0,30.25,56,29.5,31.75,30.633929,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,127,Pizza congelada,0,484.0,56,474.0,500.0,488.464286,12.5,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,19,Plástico,0,12.0,56,11.7,12.4,12.107143,35.71,lateral,bajo-normal
+2026-07-12T20:11:22Z,20,Procesadores,0,117.0,56,113.0,125.0,118.642857,35.71,bajando,bajo-normal
+2026-07-12T20:11:22Z,88,Propulsor iónico,0,11400.0,56,11300.0,11900.0,11612.5,12.5,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,85,Propulsor sólido,0,7775.0,56,7750.0,7875.0,7811.607143,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,122,Queso,0,125.0,56,123.0,133.0,127.839286,16.07,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,17,Químicos,0,15.8,56,15.1,16.1,15.608929,87.5,lateral,caro
+2026-07-12T20:11:22Z,145,Recetas,0,138.0,56,137.0,147.0,141.285714,16.07,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,70,Reloj de lujo,0,825.0,56,805.0,845.0,825.982143,62.5,lateral,normal
+2026-07-12T20:11:22Z,114,Robots,0,635.0,56,600.0,670.0,629.196429,67.86,lateral,normal
+2026-07-12T20:11:22Z,60,Ropa interior,0,6.4,56,6.0,6.9,6.555357,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,8,Salchichas,0,12.3,56,11.0,12.7,11.973214,87.5,lateral,caro
+2026-07-12T20:11:22Z,138,Salsa,0,1270.0,56,1210.0,1340.0,1266.25,66.07,lateral,normal
+2026-07-12T20:11:22Z,143,Samosa,0,750.0,56,600.0,765.0,735.178571,89.29,lateral,caro
+2026-07-12T20:11:22Z,66,Semillas,0,0.283,56,0.267,0.299,0.282821,44.64,subiendo,normal
+2026-07-12T20:11:22Z,125,Sidra de manzana,0,25.25,56,24.5,30.0,26.370536,21.43,lateral,bajo-normal
+2026-07-12T20:11:22Z,16,Silicio,0,8.9,56,7.8,9.0,8.555357,98.21,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,35,Software,0,95.0,56,93.0,102.0,97.633929,7.14,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,149,Sopa de calabaza,0,900.0,56,895.0,1090.0,973.571429,3.57,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,67,Sorpresas navideñas,0,12.3,56,11.8,12.9,12.273214,76.79,lateral,caro
+2026-07-12T20:11:22Z,25,Tabletas,0,795.0,56,740.0,820.0,800.178571,37.5,lateral,bajo-normal
+2026-07-12T20:11:22Z,108,Tablones,0,9.8,56,9.0,10.0,9.753571,67.86,lateral,normal
+2026-07-12T20:11:22Z,63,Tacón,0,33.5,56,32.5,35.5,33.745536,46.43,bajando,normal
+2026-07-12T20:11:22Z,84,Tanque de propelente,0,8850.0,56,8650.0,8950.0,8830.357143,60.71,lateral,normal
+2026-07-12T20:11:22Z,123,Tarta de manzana,0,296.0,56,292.0,306.0,300.428571,12.5,lateral,barato / sobreoferta
+2026-07-12T20:11:22Z,41,Tela,0,4.75,56,4.3,5.3,4.808036,48.21,bajando,normal
+2026-07-12T20:11:22Z,28,Televisores,0,970.0,56,930.0,1000.0,964.375,75.0,lateral,caro
+2026-07-12T20:11:22Z,24,Teléfonos inteligentes,0,610.0,56,515.0,635.0,612.142857,41.07,lateral,normal
+2026-07-12T20:11:22Z,13,Transporte,0,0.391,56,0.379,0.397,0.388429,80.36,lateral,caro
+2026-07-12T20:11:22Z,111,Unidades de construcción,0,2650.0,56,2590.0,2670.0,2642.321429,71.43,lateral,caro
+2026-07-12T20:11:22Z,5,Uvas,0,3.25,56,2.9,3.55,3.271429,46.43,lateral,normal
+2026-07-12T20:11:22Z,115,Vacas,0,137.0,56,127.0,137.0,131.589286,100.0,lateral,pico / oportunidad de venta
+2026-07-12T20:11:22Z,109,Ventanas,0,107.0,56,104.0,110.0,107.107143,53.57,lateral,normal
+2026-07-12T20:11:22Z,120,Verduras,0,2.5,56,2.15,2.85,2.633036,19.64,bajando,barato / sobreoferta
+2026-07-12T20:11:22Z,62,Vestido,0,21.75,56,21.25,23.25,22.214286,26.79,bajando,bajo-normal
+2026-07-12T20:11:22Z,45,Vidrio,0,14.5,56,14.0,14.7,14.364286,85.71,lateral,caro
+2026-07-12T20:11:22Z,107,Vigas de acero,0,21.25,56,20.5,27.25,22.241071,28.57,lateral,bajo-normal
+2026-07-12T20:11:22Z,65,Zapatillas,0,14.9,56,14.0,15.7,15.041071,44.64,lateral,normal
+2026-07-12T20:11:22Z,150,Árbol,0,368.0,56,336.0,390.0,362.428571,66.07,subiendo,normal
